@@ -1,0 +1,41 @@
+/* LEFT PROPERTY LIST */
+.explore-list {
+  background: #f8fafc;
+}
+
+.property-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+}
+
+.property-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+}
+
+.property-card strong {
+  font-size: 15px;
+  display: block;
+}
+
+.property-card .price {
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.property-card small {
+  color: #6b7280;
+}
+/* Properties heading spacing */
+.explore-list h3 {
+  margin-top: -17px;     /* move down from top */
+  margin-bottom: 12px;  /* space before search box */
+  padding-left: 4px;
+  font-size: 18px;
+  font-weight: 750;
+  
+}

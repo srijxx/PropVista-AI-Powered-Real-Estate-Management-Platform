@@ -1,0 +1,189 @@
+const mongoose = require("mongoose");
+const Property = require("./models/Property");
+require("dotenv").config();
+
+// ── Type-accurate images ─────────────────────────────────────
+const IMAGES = {
+  House: [
+    "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=600&h=400&fit=crop",
+  ],
+  Villa: [
+    "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1571939228382-b2f2b585ce15?w=600&h=400&fit=crop",
+  ],
+  Apartment: [
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=600&h=400&fit=crop",
+  ],
+  Flat: [
+    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=600&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?w=600&h=400&fit=crop",
+  ],
+};
+
+// ── 100 Coimbatore areas ──────────────────────────────────────
+const COIMBATORE = [
+  { area: "RS Puram", lat: 11.0050, lng: 76.9600 },
+  { area: "Gandhipuram", lat: 11.0168, lng: 76.9558 },
+  { area: "Peelamedu", lat: 11.0270, lng: 77.0270 },
+  { area: "Saibaba Colony", lat: 11.0200, lng: 76.9450 },
+  { area: "Singanallur", lat: 10.9900, lng: 77.0200 },
+  { area: "Vadavalli", lat: 11.0350, lng: 76.9100 },
+  { area: "Hopes College", lat: 11.0100, lng: 76.9700 },
+  { area: "Race Course", lat: 11.0080, lng: 76.9680 },
+  { area: "Tidel Park", lat: 11.0300, lng: 77.0100 },
+  { area: "Kovaipudur", lat: 10.9800, lng: 76.9300 },
+  { area: "Thudiyalur", lat: 11.0600, lng: 76.9400 },
+  { area: "Kuniyamuthur", lat: 10.9700, lng: 76.9500 },
+];
+
+// ── 400 Tamil Nadu cities ─────────────────────────────────────
+const TN_CITIES = [
+  // Erode
+  { area: "Erode Town", city: "Erode", lat: 11.3410, lng: 77.7172 },
+  { area: "Perundurai", city: "Erode", lat: 11.2750, lng: 77.5850 },
+  { area: "Bhavani", city: "Erode", lat: 11.4450, lng: 77.6830 },
+  { area: "Gobichettipalayam", city: "Erode", lat: 11.4540, lng: 77.3580 },
+  { area: "Sathyamangalam", city: "Erode", lat: 11.5040, lng: 77.2380 },
+  // Chennai
+  { area: "Anna Nagar", city: "Chennai", lat: 13.0850, lng: 80.2101 },
+  { area: "Adyar", city: "Chennai", lat: 13.0012, lng: 80.2565 },
+  { area: "Velachery", city: "Chennai", lat: 12.9815, lng: 80.2180 },
+  { area: "Porur", city: "Chennai", lat: 13.0358, lng: 80.1573 },
+  { area: "OMR", city: "Chennai", lat: 12.9010, lng: 80.2279 },
+  { area: "T Nagar", city: "Chennai", lat: 13.0418, lng: 80.2341 },
+  { area: "Tambaram", city: "Chennai", lat: 12.9249, lng: 80.1000 },
+  { area: "Perambur", city: "Chennai", lat: 13.1067, lng: 80.2357 },
+  { area: "Sholinganallur", city: "Chennai", lat: 12.9010, lng: 80.2279 },
+  { area: "Medavakkam", city: "Chennai", lat: 12.9254, lng: 80.1954 },
+  // Madurai
+  { area: "Anna Nagar Madurai", city: "Madurai", lat: 9.9252, lng: 78.1198 },
+  { area: "KK Nagar Madurai", city: "Madurai", lat: 9.9038, lng: 78.0919 },
+  { area: "Tallakulam", city: "Madurai", lat: 9.9316, lng: 78.1397 },
+  { area: "Palanganatham", city: "Madurai", lat: 9.8923, lng: 78.1264 },
+  { area: "Thirunagar", city: "Madurai", lat: 9.9168, lng: 78.1000 },
+  // Salem
+  { area: "Salem Town", city: "Salem", lat: 11.6643, lng: 78.1460 },
+  { area: "Fairlands", city: "Salem", lat: 11.6939, lng: 78.1337 },
+  { area: "Suramangalam", city: "Salem", lat: 11.6500, lng: 78.0800 },
+  { area: "Hasthampatti", city: "Salem", lat: 11.6510, lng: 78.1730 },
+  // Tirupur
+  { area: "Tirupur Town", city: "Tirupur", lat: 11.1085, lng: 77.3411 },
+  { area: "Veerapandi", city: "Tirupur", lat: 11.0580, lng: 77.3200 },
+  { area: "Avinashi", city: "Tirupur", lat: 11.1940, lng: 77.2640 },
+  // Vellore
+  { area: "Vellore Town", city: "Vellore", lat: 12.9165, lng: 79.1325 },
+  { area: "Katpadi", city: "Vellore", lat: 12.9715, lng: 79.1507 },
+  { area: "Krishnagiri", city: "Krishnagiri", lat: 12.5266, lng: 78.2139 },
+  // Trichy
+  { area: "Trichy Town", city: "Trichy", lat: 10.7905, lng: 78.7047 },
+  { area: "Srirangam", city: "Trichy", lat: 10.8633, lng: 78.6939 },
+  { area: "Ariyamangalam", city: "Trichy", lat: 10.7714, lng: 78.7445 },
+  // Thanjavur
+  { area: "Thanjavur Town", city: "Thanjavur", lat: 10.7870, lng: 79.1378 },
+  { area: "Kumbakonam", city: "Thanjavur", lat: 10.9602, lng: 79.3845 },
+  // Tirunelveli
+  { area: "Tirunelveli Town", city: "Tirunelveli", lat: 8.7139, lng: 77.7567 },
+  { area: "Palayamkottai", city: "Tirunelveli", lat: 8.7270, lng: 77.7358 },
+  // Tiruvannamalai
+  { area: "Tiruvannamalai Town", city: "Tiruvannamalai", lat: 12.2253, lng: 79.0747 },
+  // Cuddalore
+  { area: "Cuddalore Town", city: "Cuddalore", lat: 11.7480, lng: 79.7714 },
+  // Villupuram
+  { area: "Villupuram Town", city: "Villupuram", lat: 11.9391, lng: 79.4931 },
+];
+
+const TYPES = ["Apartment", "Flat", "House", "Villa"];
+const STATUSES = ["For Sale", "For Rent"];
+const OWNERS = [
+  { name: "Rajesh Kumar", phone: "9876543210", email: "owner1@propvista.com" },
+  { name: "Priya Devi", phone: "9123456789", email: "owner2@propvista.com" },
+  { name: "Suresh Babu", phone: "9988776655", email: "owner3@propvista.com" },
+  { name: "Meena Sundaram", phone: "9345678901", email: "owner4@propvista.com" },
+  { name: "Arun Prakash", phone: "9012345678", email: "owner5@propvista.com" },
+  { name: "Kavitha Rajan", phone: "9765432109", email: "owner6@propvista.com" },
+  { name: "Murugan S", phone: "9654321098", email: "owner7@propvista.com" },
+  { name: "Lakshmi Narayanan", phone: "9543210987", email: "owner8@propvista.com" },
+];
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randF(min, max) { return parseFloat((Math.random() * (max - min) + min).toFixed(5)); }
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function makeProperty(areaObj, cityName, index) {
+  const type = pick(TYPES);
+  const bhk = rand(1, 5);
+  const status = pick(STATUSES);
+  const owner = OWNERS[index % OWNERS.length];
+  const imgs = IMAGES[type];
+  const img = imgs[index % imgs.length];
+
+  return {
+    title: `${bhk} BHK ${type} in ${areaObj.area}`,
+    type,
+    location: `${areaObj.area}, ${cityName}`,
+    price: rand(800000, 15000000),
+    bedrooms: bhk,
+    bathrooms: rand(1, 3),
+    area: rand(500, 4000),
+    status,
+    lat: randF(areaObj.lat - 0.02, areaObj.lat + 0.02),
+    lng: randF(areaObj.lng - 0.02, areaObj.lng + 0.02),
+    ownerName: owner.name,
+    ownerPhone: owner.phone,
+    ownerEmail: owner.email,
+    published: true,
+    featured: Math.random() > 0.88,
+    image: img,
+  };
+}
+
+async function seed() {
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log("Connected to MongoDB");
+
+  // Clear existing
+  await Property.deleteMany({});
+  console.log("Cleared existing properties");
+
+  const properties = [];
+
+  // 100 Coimbatore properties
+  for (let i = 0; i < 100; i++) {
+    const areaObj = COIMBATORE[i % COIMBATORE.length];
+    properties.push(makeProperty(areaObj, "Coimbatore", i));
+  }
+
+  // 400 Tamil Nadu properties
+  for (let i = 0; i < 400; i++) {
+    const loc = TN_CITIES[i % TN_CITIES.length];
+    properties.push(makeProperty(loc, loc.city, i + 100));
+  }
+
+  await Property.insertMany(properties);
+  console.log(`✅ Inserted ${properties.length} properties`);
+  console.log(`   - 100 in Coimbatore`);
+  console.log(`   - 400 across Tamil Nadu (Chennai, Madurai, Salem, Trichy, Erode, etc.)`);
+  console.log(`   - Type-accurate images: House→house, Villa→villa, Apartment→apartment, Flat→flat`);
+
+  mongoose.disconnect();
+}
+
+seed().catch(err => { console.error("Seed error:", err); mongoose.disconnect(); });

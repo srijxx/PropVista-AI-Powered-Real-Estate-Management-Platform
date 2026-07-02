@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import API_BASE from '../config';
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
@@ -43,7 +43,7 @@ function Login() {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await axios.post(`${API_BASE}/api/auth/login", { email, password });
+      const res = await axios.post(`${API_BASE}/api/auth/login`, { email, password });
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", res.data.token);
       localStorage.setItem("userId", res.data.userId);
@@ -61,7 +61,7 @@ function Login() {
     if (!regAgree) { toast("Please agree to the terms of service", "warning"); return; }
     try {
       setRegLoading(true);
-      const res = await axios.post(`${API_BASE}/api/auth/register", {
+      const res = await axios.post(`${API_BASE}/api/auth/register`, {
         name: regUsername, username: regUsername, email: regEmail, password: regPassword,
       });
       localStorage.setItem("token", res.data.token);

@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+﻿import { useParams, useNavigate } from "react-router-dom";
 import API_BASE from '../config';
 import { useEffect, useState } from "react";
 import AppLayout from "../components/AppLayout";
@@ -109,7 +109,7 @@ function PropertyDetails() {
     e.preventDefault();
     setBooking(true);
     try {
-      const res = await fetch(`${API_BASE}/api/bookings", {
+      const res = await fetch(`${API_BASE}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ propertyId: id, ...bookForm })

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import API_BASE from "../config";
 import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
@@ -20,7 +20,7 @@ function Contact() {
     e.preventDefault();
     setSending(true);
     try {
-      const res = await fetch(`${API_BASE}/api/contact", {
+      const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

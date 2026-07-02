@@ -29,7 +29,7 @@ function ViewProperties() {
   // FETCH PROPERTIES
   useEffect(() => {
     setLoading(true);
-    fetch(`${API_BASE}/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then((res) => res.json())
       .then((data) => {
         // Sort newest first by createdAt, then by _id as tiebreaker

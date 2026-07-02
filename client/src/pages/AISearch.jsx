@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import "./dashboard.css";
@@ -54,7 +54,7 @@ export default function AISearch() {
     setQuery(text);
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/ai/chat", {
+      const res = await fetch(`${API_BASE}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })

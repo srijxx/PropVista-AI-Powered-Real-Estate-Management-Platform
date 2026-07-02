@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
@@ -32,7 +32,7 @@ export default function MyBookings() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/bookings/my", {
+    fetch(`${API_BASE}/api/bookings/my`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())

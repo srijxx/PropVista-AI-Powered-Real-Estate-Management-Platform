@@ -1,4 +1,4 @@
-import AppLayout from "../components/AppLayout";
+﻿import AppLayout from "../components/AppLayout";
 import API_BASE from '../config';
 import MapPicker from "../components/MapPicker";
 import { useState, useRef } from "react";
@@ -47,7 +47,7 @@ function AddProperty() {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       setSubmitting(true);
 
-      const res = await fetch(`${API_BASE}/api/properties/add", {
+      const res = await fetch(`${API_BASE}/api/properties/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)

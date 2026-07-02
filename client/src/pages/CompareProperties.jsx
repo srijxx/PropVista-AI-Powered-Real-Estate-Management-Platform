@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
@@ -40,7 +40,7 @@ export default function CompareProperties() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then(r => r.json())
       .then(setAllProperties)
       .catch(console.error);

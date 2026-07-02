@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
@@ -50,7 +50,7 @@ export default function EMICalculator() {
   const PIE_COLORS = ["#6366f1", "#f97316"];
 
   const findInBudget = () => {
-    fetch(`${API_BASE}/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then(r => r.json())
       .then(data => {
         const filtered = data.filter(p => p.price && p.price <= price).slice(0, 6);

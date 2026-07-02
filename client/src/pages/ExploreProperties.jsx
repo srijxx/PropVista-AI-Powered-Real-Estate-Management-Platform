@@ -75,6 +75,8 @@ function getTypeImg(property) {
   return imgs[idx];
 }
 
+import API_BASE from "../config";
+
 function ExploreProperties() {
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
@@ -97,7 +99,7 @@ function ExploreProperties() {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then(r => r.json())
       .then(d => setProperties(d))
       .catch(console.error);

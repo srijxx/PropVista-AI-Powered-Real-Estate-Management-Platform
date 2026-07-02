@@ -1,4 +1,5 @@
 import AppLayout from "../components/AppLayout";
+import API_BASE from '../config';
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
@@ -28,7 +29,7 @@ function ViewProperties() {
   // FETCH PROPERTIES
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:5000/api/properties")
+    fetch(`${API_BASE}/api/properties")
       .then((res) => res.json())
       .then((data) => {
         // Sort newest first by createdAt, then by _id as tiebreaker
@@ -61,7 +62,7 @@ function ViewProperties() {
     setConfirmId(null);
     setActionLoading(true);
     try {
-      await fetch(`http://localhost:5000/api/properties/${id}`, {
+      await fetch(`${API_BASE}/api/properties/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` }
       });

@@ -1,4 +1,5 @@
 import AppLayout from "../components/AppLayout";
+import API_BASE from '../config';
 import MapPicker from "../components/MapPicker";
 import { useState, useRef } from "react";
 import { useToast } from "../components/Toast";
@@ -46,7 +47,7 @@ function AddProperty() {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       setSubmitting(true);
 
-      const res = await fetch("http://localhost:5000/api/properties/add", {
+      const res = await fetch(`${API_BASE}/api/properties/add", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -58,7 +59,7 @@ function AddProperty() {
       if (imageFile && saved._id) {
         const formData = new FormData();
         formData.append("image", imageFile);
-        await fetch(`http://localhost:5000/api/properties/${saved._id}/image`, {
+        await fetch(`${API_BASE}/api/properties/${saved._id}/image`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData

@@ -10,12 +10,14 @@ const markerIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
+import API_BASE from "../config";
+
 function MapView() {
   const [properties, setProperties] = useState([]);
 
   // 🔹 get all properties
   useEffect(() => {
-    fetch("http://localhost:5000/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then((res) => res.json())
       .then((data) => setProperties(data))
       .catch((err) => console.error(err));

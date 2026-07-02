@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import API_BASE from '../config';
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -18,7 +19,7 @@ function Notifications() {
 
   useEffect(() => {
     const fetchLatest = () => {
-      fetch("http://localhost:5000/api/properties")
+      fetch(`${API_BASE}/api/properties")
         .then(r => r.json())
         .then(data => {
           const recent = [...data]

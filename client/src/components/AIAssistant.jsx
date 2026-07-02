@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import API_BASE from '../config';
 import { useNavigate } from "react-router-dom";
 
 const TYPE_IMGS = {
@@ -72,7 +73,7 @@ function AIAssistant({ userName }) {
         .filter(m => m.content)
         .map(m => ({ role: m.role, content: m.content || m.parsed?.message || "" }));
 
-      const res = await fetch("http://localhost:5000/api/ai/chat", {
+      const res = await fetch(`${API_BASE}/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msg, history })

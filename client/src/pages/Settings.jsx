@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API_BASE from '../config';
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
 import AppLayout from "../components/AppLayout";
@@ -24,13 +25,13 @@ function Settings() {
       document.body.classList.add("dark-mode");
     }
     if (userId) {
-      fetch(`http://localhost:5000/api/users/profile/${userId}`)
+      fetch(`${API_BASE}/api/users/profile/${userId}`)
         .then(r => r.json())
         .then(d => {
           const name = d.firstName || d.username || "User";
           setUserName(name);
           setUserEmail(d.email || "");
-          if (d.avatar) setUserAvatar(`http://localhost:5000/uploads/${d.avatar}`);
+          if (d.avatar) setUserAvatar(`${API_BASE}/uploads/${d.avatar}`);
           localStorage.setItem("userName", name);
           localStorage.setItem("userEmail", d.email || "");
         }).catch(() => {});
@@ -48,7 +49,7 @@ function Settings() {
 
   const handleDeleteAccount = async () => {
     try {
-      await fetch(`http://localhost:5000/api/users/profile/${userId}`, {
+      await fetch(`${API_BASE}/api/users/profile/${userId}`, {
         method: "DELETE", headers: { Authorization: `Bearer ${token}` }
       });
       localStorage.clear();

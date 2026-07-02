@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import API_BASE from '../config';
 import { useEffect, useState } from "react";
 import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
@@ -108,7 +109,7 @@ function PropertyDetails() {
     e.preventDefault();
     setBooking(true);
     try {
-      const res = await fetch("http://localhost:5000/api/bookings", {
+      const res = await fetch(`${API_BASE}/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ propertyId: id, ...bookForm })
@@ -126,7 +127,7 @@ function PropertyDetails() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/properties/${id}`)
+    fetch(`${API_BASE}/api/properties/${id}`)
       .then(r => r.json())
       .then(d => {
         setProperty(d);

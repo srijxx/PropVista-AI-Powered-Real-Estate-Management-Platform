@@ -1,5 +1,6 @@
-import AppLayout from "../components/AppLayout";
 import { useState, useRef, useEffect } from "react";
+import API_BASE from "../config";
+import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
 
 function Profile() {
@@ -25,7 +26,7 @@ function Profile() {
     const fetchProfile = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/users/profile/${USER_ID}`
+          `${API_BASE}/api/users/profile/${USER_ID}`
         );
         const data = await res.json();
 
@@ -70,7 +71,7 @@ function Profile() {
       formData.append("avatar", file);
 
       const res = await fetch(
-        `http://localhost:5000/api/users/profile/${USER_ID}/avatar`,
+        `${API_BASE}/api/users/profile/${USER_ID}/avatar`,
         { method: "POST", body: formData, headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -87,7 +88,7 @@ function Profile() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/users/profile/${USER_ID}`, {
+      const res = await fetch(`${API_BASE}/api/users/profile/${USER_ID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)
@@ -119,7 +120,7 @@ function Profile() {
                   avatar
                     ? avatar.startsWith("blob:")
                       ? avatar
-                      : `http://localhost:5000/uploads/${avatar}`
+                      : `${API_BASE}/uploads/${avatar}`
                     : "https://ui-avatars.com/api/?name=User&size=150&background=6366f1&color=fff&rounded=true"
                 }
                 alt="profile"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import CountUp from "react-countup";
+import API_BASE from "../config";
 import "./dashboard.css";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, AreaChart, Area, ComposedChart, Bar, CartesianGrid, Cell, LabelList, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import AIAssistant from "../components/AIAssistant";
@@ -53,12 +54,12 @@ export default function Dashboard() {
   const initial = userName.charAt(0).toUpperCase();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/properties/stats/summary")
+    fetch(`${API_BASE}/api/properties/stats/summary`)
       .then(r=>r.json()).then(d=>{setStats(d);setLoading(false);}).catch(()=>setLoading(false));
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then(r=>r.json()).then(setAllProperties).catch(console.error);
   }, []);
 

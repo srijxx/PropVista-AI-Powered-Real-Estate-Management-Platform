@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API_BASE from '../config';
 import axios from "axios";
 import { Link } from "react-router-dom";
 
@@ -21,7 +22,7 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/auth/reset-password", {
+      await axios.post(`${API_BASE}/api/auth/reset-password", {
         email,
         newPassword
       });

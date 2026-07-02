@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
 import "./dashboard.css";
@@ -31,7 +32,7 @@ export default function MyBookings() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/bookings/my", {
+    fetch(`${API_BASE}/api/bookings/my", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -41,7 +42,7 @@ export default function MyBookings() {
 
   const handleCancel = async (id) => {
     if (!window.confirm("Cancel this booking?")) return;
-    const res = await fetch(`http://localhost:5000/api/bookings/${id}/cancel`, {
+    const res = await fetch(`${API_BASE}/api/bookings/${id}/cancel`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` }
     });

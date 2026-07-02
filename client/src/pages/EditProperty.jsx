@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import API_BASE from '../config';
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
@@ -28,7 +29,7 @@ function EditProperty() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/properties/${id}`).then((res) => {
+    axios.get(`${API_BASE}/api/properties/${id}`).then((res) => {
       const p = res.data;
       setForm({
         title: p.title || "",
@@ -59,14 +60,14 @@ function EditProperty() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`http://localhost:5000/api/properties/${id}`, form, {
+      await axios.put(`${API_BASE}/api/properties/${id}`, form, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (imageFile) {
         const formData = new FormData();
         formData.append("image", imageFile);
-        await axios.post(`http://localhost:5000/api/properties/${id}/image`, formData, {
+        await axios.post(`${API_BASE}/api/properties/${id}/image`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

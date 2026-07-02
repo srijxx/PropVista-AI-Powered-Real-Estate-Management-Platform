@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_BASE from '../config';
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
@@ -7,7 +8,7 @@ function PropertyList() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/properties", {
+    axios.get(`${API_BASE}/api/properties", {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setProperties(res.data));

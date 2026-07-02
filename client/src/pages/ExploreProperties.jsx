@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { useNavigate, NavLink } from "react-router-dom";
+import API_BASE from "../config";
 import "./ExploreProperties.css";
 import Notifications from "../components/Notifications";
 

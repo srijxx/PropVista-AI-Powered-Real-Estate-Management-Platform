@@ -1,0 +1,30 @@
+[1mdiff --git a/client/src/pages/ExploreProperties.jsx b/client/src/pages/ExploreProperties.jsx[m
+[1mindex d8d3052..190dc14 100644[m
+[1m--- a/client/src/pages/ExploreProperties.jsx[m
+[1m+++ b/client/src/pages/ExploreProperties.jsx[m
+[36m@@ -4,7 +4,6 @@[m [mimport { useEffect, useRef, useState } from "react";[m
+ import L from "leaflet";[m
+ import MarkerClusterGroup from "react-leaflet-cluster";[m
+ import { useNavigate, NavLink } from "react-router-dom";[m
+[31m-import API_BASE from "../config";[m
+ import "./ExploreProperties.css";[m
+ import Notifications from "../components/Notifications";[m
+ [m
+[36m@@ -76,8 +75,6 @@[m [mfunction getTypeImg(property) {[m
+   return imgs[idx];[m
+ }[m
+ [m
+[31m-import API_BASE from "../config";[m
+[31m-[m
+ function ExploreProperties() {[m
+   const navigate = useNavigate();[m
+   const [properties, setProperties] = useState([]);[m
+[36m@@ -100,7 +97,7 @@[m [mfunction ExploreProperties() {[m
+   const itemsPerPage = 8;[m
+ [m
+   useEffect(() => {[m
+[31m-    fetch(`${API_BASE}/api/properties`)[m
+[32m+[m[32m    fetch("http://localhost:5000/api/properties")[m
+       .then(r => r.json())[m
+       .then(d => setProperties(d))[m
+       .catch(console.error);[m

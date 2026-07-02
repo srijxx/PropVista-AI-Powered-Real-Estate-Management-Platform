@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { useNavigate, NavLink } from "react-router-dom";
-import API_BASE from "../config";
 import "./ExploreProperties.css";
 import Notifications from "../components/Notifications";
 
@@ -76,8 +75,6 @@ function getTypeImg(property) {
   return imgs[idx];
 }
 
-import API_BASE from "../config";
-
 function ExploreProperties() {
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
@@ -100,7 +97,7 @@ function ExploreProperties() {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/properties`)
+    fetch("http://localhost:5000/api/properties")
       .then(r => r.json())
       .then(d => setProperties(d))
       .catch(console.error);

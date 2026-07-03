@@ -2,77 +2,23 @@ const mongoose = require("mongoose");
 const Property = require("./models/Property");
 require("dotenv").config();
 
-// =============================================================================
-// THREE COMPLETELY SEPARATE IMAGE LIBRARIES — NEVER MIXED
-// HOUSE_IMAGES    → independent single-family houses only
-// APARTMENT_IMAGES → apartment / flat buildings only (multi-storey)
-// VILLA_IMAGES    → luxury villas only
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPERTY IMAGE MAPPING — REBUILT FROM SCRATCH
+// Four fixed constants. Simple if/else. No arrays. No rotation. No hashing.
+// ─────────────────────────────────────────────────────────────────────────────
+const HOUSE_IMAGE     = "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&q=80&auto=format&fit=crop";
+const APARTMENT_IMAGE = "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=1200&q=80&auto=format&fit=crop";
+const FLAT_IMAGE      = "https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200&q=80&auto=format&fit=crop";
+const VILLA_IMAGE     = "https://images.unsplash.com/photo-1613977257365-aaae5a9817ff?w=1200&q=80&auto=format&fit=crop";
 
-const HOUSE_IMAGES = [
-  "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1609347744403-2306e1af3a49?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1598228723793-56200a5e7e03?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1531835551805-16d864c8d311?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=500&fit=crop",
-];
-
-const APARTMENT_IMAGES = [
-  "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1515263487990-61b07816b324?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1567684014761-b65e2e59b9eb?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1549517045-bc93de28f8d6?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1448630360428-65456885c650?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1543489822-c49534f3271f?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1597047084993-6509c0302e3e?w=800&h=500&fit=crop",
-];
-
-const VILLA_IMAGES = [
-  "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1601760561441-16420502c7e0?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1618221469555-7f3ad97540d6?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1607400201889-565b1ee75f8e?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1622015663084-307d19eabbbf?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1596178060671-7a80dc8059ea?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1598977163716-7e2bf1d00a4c?w=800&h=500&fit=crop",
-  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=500&fit=crop&sat=20",
-];
-
-// Strict type → pool mapping. Flat uses APARTMENT_IMAGES (always a building).
-function getImagePool(type) {
-  if (type === "House")                         return HOUSE_IMAGES;
-  if (type === "Villa")                         return VILLA_IMAGES;
-  if (type === "Apartment" || type === "Flat")  return APARTMENT_IMAGES;
-  return APARTMENT_IMAGES; // unknown → building fallback
+function getImageForType(type) {
+  if (type === "House")     return HOUSE_IMAGE;
+  if (type === "Apartment") return APARTMENT_IMAGE;
+  if (type === "Flat")      return FLAT_IMAGE;
+  if (type === "Villa")     return VILLA_IMAGE;
+  return HOUSE_IMAGE;
 }
 
-// Keep IMAGES alias so the rest of seed500.js (getImage call) still works
-const IMAGES = { House: HOUSE_IMAGES, Villa: VILLA_IMAGES, Apartment: APARTMENT_IMAGES, Flat: APARTMENT_IMAGES };
 
 // ── Coimbatore areas with precise coordinates ─────────────────
 const COIMBATORE = [
@@ -233,9 +179,7 @@ function makeProperty(areaObj, cityName, globalIndex) {
     type === "Apartment" ? rand(700, 2200) :
     rand(450, 1500);
 
-  // Strict: use ONLY the pool for this type — never cross-category
-  const pool = getImagePool(type);
-  const image = pool[globalIndex % pool.length];
+  const image = getImageForType(type);
 
   return {
     title: `${bhk} BHK ${type} in ${areaObj.area}`,

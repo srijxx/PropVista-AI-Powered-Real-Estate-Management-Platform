@@ -435,6 +435,7 @@ export default function Dashboard() {
             <div className="ndb-card">
               <p className="ndb-card-title" style={{marginBottom:12}}>Quick Actions</p>
               {[
+                {icon:"➕",label:"Add Property",sub:"List a new property →",ic:"#2563eb",onClick:()=>navigate("/add-property")},
                 {icon:"🔮",label:"Predict Property Price",sub:"Get AI predicted price →",ic:"#6366f1",onClick:()=>navigate("/predict-price")},
                 {icon:"🧮",label:"EMI Calculator",sub:"Calculate your monthly EMI →",ic:"#16a34a",onClick:()=>navigate("/emi-calculator")},
                 {icon:"⚖️",label:"Compare Properties",sub:"Compare 2 or more properties →",ic:"#f97316",onClick:()=>navigate("/compare-properties")},

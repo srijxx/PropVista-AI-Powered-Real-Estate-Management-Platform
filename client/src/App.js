@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { ToastProvider } from "./components/Toast";
+
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -46,33 +47,31 @@ function App() {
 
   return (
     <ToastProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<PublicRoute element={<Login />} />} />
-          <Route path="/register" element={<PublicRoute element={<Register />} />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<PublicRoute element={<Login />} />} />
+        <Route path="/register" element={<PublicRoute element={<Register />} />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
-          <Route path="/properties" element={<PrivateRoute element={<ViewProperties />} />} />
-          <Route path="/add-property" element={<PrivateRoute element={<AddProperty />} />} />
-          <Route path="/edit-property/:id" element={<PrivateRoute element={<EditProperty />} />} />
-          <Route path="/properties/:id" element={<PrivateRoute element={<PropertyDetails />} />} />
-          <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
-          <Route path="/map-view" element={<PrivateRoute element={<MapView />} />} />
-          <Route path="/explore" element={<PrivateRoute element={<ExploreProperties />} />} />
-          <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
-          <Route path="/policy" element={<PrivateRoute element={<PolicyPage />} />} />
-          <Route path="/contact" element={<PrivateRoute element={<Contact />} />} />
-          <Route path="/feedback" element={<PrivateRoute element={<Feedback />} />} />
-          <Route path="/rate-app" element={<PrivateRoute element={<RateApp />} />} />
-          <Route path="/ai-search" element={<PrivateRoute element={<AISearch />} />} />
-          <Route path="/bookings" element={<PrivateRoute element={<MyBookings />} />} />
-          <Route path="/predict-price" element={<PrivateRoute element={<PredictPrice />} />} />
-          <Route path="/emi-calculator" element={<PrivateRoute element={<EMICalculator />} />} />
-          <Route path="/compare-properties" element={<PrivateRoute element={<CompareProperties />} />} />
-        </Routes>
-      </Router>
+        <Route path="/dashboard" element={<PrivateRoute element={<Dashboard />} />} />
+        <Route path="/properties" element={<PrivateRoute element={<ViewProperties />} />} />
+        <Route path="/add-property" element={<PrivateRoute element={<AddProperty />} />} />
+        <Route path="/edit-property/:id" element={<PrivateRoute element={<EditProperty />} />} />
+        <Route path="/properties/:id" element={<PrivateRoute element={<PropertyDetails />} />} />
+        <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
+        <Route path="/map-view" element={<PrivateRoute element={<MapView />} />} />
+        <Route path="/explore" element={<PrivateRoute element={<ExploreProperties />} />} />
+        <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
+        <Route path="/policy" element={<PrivateRoute element={<PolicyPage />} />} />
+        <Route path="/contact" element={<PrivateRoute element={<Contact />} />} />
+        <Route path="/feedback" element={<PrivateRoute element={<Feedback />} />} />
+        <Route path="/rate-app" element={<PrivateRoute element={<RateApp />} />} />
+        <Route path="/ai-search" element={<PrivateRoute element={<AISearch />} />} />
+        <Route path="/bookings" element={<PrivateRoute element={<MyBookings />} />} />
+        <Route path="/predict-price" element={<PrivateRoute element={<PredictPrice />} />} />
+        <Route path="/emi-calculator" element={<PrivateRoute element={<EMICalculator />} />} />
+        <Route path="/compare-properties" element={<PrivateRoute element={<CompareProperties />} />} />
+      </Routes>
     </ToastProvider>
   );
 }

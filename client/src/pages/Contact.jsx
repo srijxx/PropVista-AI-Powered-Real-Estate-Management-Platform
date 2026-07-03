@@ -4,10 +4,10 @@ import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
 
 const CONTACT_INFO = [
-  { icon: "✉️", label: "Email", value: "support@propvista.com", href: "mailto:support@propvista.com" },
-  { icon: "📞", label: "Phone", value: "+91 98765 43210", href: "tel:+919876543210" },
-  { icon: "🌐", label: "Website", value: "www.propvista.com", href: "https://propvista.com" },
-  { icon: "📍", label: "Location", value: "Coimbatore, Tamil Nadu", href: null },
+  { icon: "✉️", label: "Email",    value: "sreeja010605@gmail.com",                              href: "mailto:sreeja010605@gmail.com" },
+  { icon: "📞", label: "Phone",    value: "+91 81240 36925",                                      href: "tel:+918124036925" },
+  { icon: "🌐", label: "Website",  value: "propvista-ai-powered-real-estate.onrender.com",        href: "https://propvista-ai-powered-real-estate.onrender.com/" },
+  { icon: "📍", label: "Location", value: "Coimbatore, Tamil Nadu",                               href: null },
 ];
 
 function Contact() {

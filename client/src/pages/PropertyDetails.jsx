@@ -6,6 +6,7 @@ import { useToast } from "../components/Toast";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { getTypeImage } from "../utils/typeImages";
 
 const markerIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -14,35 +15,9 @@ const markerIcon = new L.Icon({
   iconAnchor: [12, 41],
 });
 
-const TYPE_IMGS = {
-  Apartment: [
-    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=500&fit=crop",
-  ],
-  House: [
-    "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&h=500&fit=crop",
-  ],
-  Villa: [
-    "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=500&fit=crop",
-  ],
-  Flat: [
-    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=500&fit=crop",
-    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&h=500&fit=crop",
-  ],
-};
-
+// Returns type-accurate images for the gallery — uses shared utility
 function getImages(property) {
-  if (property.image) return [property.image];
-  const imgs = TYPE_IMGS[property.type] || TYPE_IMGS["Apartment"];
-  // Rotate the array based on _id so each property gets a different starting image
-  const offset = parseInt((property._id || "0").slice(-4), 16) % imgs.length;
-  return [...imgs.slice(offset), ...imgs.slice(0, offset)];
+  return [getTypeImage(property)];
 }
 
 function getHighlights(type) {

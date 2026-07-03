@@ -6,6 +6,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 import { useNavigate, NavLink } from "react-router-dom";
 import "./ExploreProperties.css";
 import API_BASE from "../config";
+import { getTypeImage } from "../utils/typeImages";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -257,7 +258,7 @@ function ExploreProperties() {
                       onMouseLeave={() => setHoverId(null)}
                     >
                       <div className="ep-card-img-wrap">
-                        <img src={p.image || getTypeImg(p)} alt={p.title} className="ep-card-img" />
+                        <img src={getTypeImage(p)} alt={p.title} className="ep-card-img" />
                         <span className={`ep-card-badge ${p.status === "For Sale" ? "sale" : "rent"}`}>{p.status}</span>
                         <button className={`ep-heart${savedIds.includes(p._id) ? " saved" : ""}`} onClick={e => toggleSave(p._id, e)}>
                           {savedIds.includes(p._id) ? "❤️" : "🤍"}

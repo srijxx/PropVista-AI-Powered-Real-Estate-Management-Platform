@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { getThumbImage } from "../utils/typeImages";
 
 function ViewProperties() {
   const [properties, setProperties] = useState([]);
@@ -193,47 +194,11 @@ function ViewProperties() {
               paginatedProperties.map((p) => (
                 <tr key={p._id} style={{cursor:"pointer"}} onClick={() => navigate(`/properties/${p._id}`)}>
                   <td onClick={e => e.stopPropagation()}>
-                    {(() => {
-                      const typeImgs = {
-                        Apartment: [
-                          "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=120&h=80&fit=crop",
-                        ],
-                        House: [
-                          "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=120&h=80&fit=crop",
-                        ],
-                        Villa: [
-                          "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=120&h=80&fit=crop",
-                        ],
-                        Flat: [
-                          "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=120&h=80&fit=crop",
-                          "https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=120&h=80&fit=crop",
-                        ],
-                      };
-                      const imgs = typeImgs[p.type] || typeImgs.Apartment;
-                      const idx = parseInt((p._id || "0").slice(-4), 16) % imgs.length;
-                      return (
-                        <img
-                          src={p.image || imgs[idx]}
-                          className="table-img"
-                          alt="property"
-                        />
-                      );
-                    })()}
+                    <img
+                      src={getThumbImage(p)}
+                      className="table-img"
+                      alt="property"
+                    />
                   </td>
 
                   <td>

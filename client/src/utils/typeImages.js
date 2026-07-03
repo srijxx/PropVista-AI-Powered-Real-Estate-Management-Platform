@@ -17,13 +17,27 @@ const VILLA_IMAGE =
 
 // ─────────────────────────────────────────────────────────────────────────────
 // getTypeImage
-// Returns the single correct image for the property type.
+// Priority:
+//   1. If the property has its own uploaded image → use it (user's photo wins)
+//   2. Otherwise → use the fixed type-accurate constant
+//
 // House      → HOUSE_IMAGE      only
 // Apartment  → APARTMENT_IMAGE  only
 // Flat       → FLAT_IMAGE       only
 // Villa      → VILLA_IMAGE      only
 // ─────────────────────────────────────────────────────────────────────────────
 export function getTypeImage(property) {
+  // Use user-uploaded image if it exists and is a valid external URL
+  if (
+    property.image &&
+    typeof property.image === "string" &&
+    property.image.startsWith("http") &&
+    !property.image.includes("localhost")
+  ) {
+    return property.image;
+  }
+
+  // Fall back to fixed type-accurate image
   if (property.type === "House")     return HOUSE_IMAGE;
   if (property.type === "Apartment") return APARTMENT_IMAGE;
   if (property.type === "Flat")      return FLAT_IMAGE;

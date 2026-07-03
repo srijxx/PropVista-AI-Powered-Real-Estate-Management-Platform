@@ -73,11 +73,12 @@ router.post("/add", auth, async (req, res) => {
   }
 });
 
-// ✅ UPLOAD PROPERTY IMAGE (protected)
+// ✅ UPLOAD PROPERTY IMAGE (protected) — stored on Cloudinary CDN
 router.post("/:id/image", auth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-    const imageUrl = `${process.env.SERVER_URL || "http://localhost:5000"}/uploads/${req.file.filename}`;
+    // Cloudinary storage puts the secure URL on req.file.path
+    const imageUrl = req.file.path;
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       { image: imageUrl },

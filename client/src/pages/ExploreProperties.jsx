@@ -5,7 +5,7 @@ import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { useNavigate, NavLink } from "react-router-dom";
 import "./ExploreProperties.css";
-import Notifications from "../components/Notifications";
+import API_BASE from "../config";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -97,7 +97,7 @@ function ExploreProperties() {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/properties")
+    fetch(`${API_BASE}/api/properties`)
       .then(r => r.json())
       .then(d => setProperties(d))
       .catch(console.error);

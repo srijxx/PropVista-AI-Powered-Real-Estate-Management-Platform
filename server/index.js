@@ -6,7 +6,10 @@ const connectDB = require("./config/db");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : "*",
+  credentials: true,
+}));
 app.use(express.json());
 
 // ✅ ADD ONLY THIS LINE

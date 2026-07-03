@@ -7,7 +7,7 @@ const User = require("../models/User");
 // REGISTER
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     if (!name || !name.trim()) return res.status(400).json({ message: "Name is required" });
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -24,6 +24,7 @@ router.post("/register", async (req, res) => {
 
     const user = new User({
       name,
+      username: username || name,
       email: email.toLowerCase(),
       password: hashedPassword
     });

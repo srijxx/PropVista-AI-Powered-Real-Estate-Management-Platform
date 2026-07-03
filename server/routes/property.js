@@ -77,7 +77,7 @@ router.post("/add", auth, async (req, res) => {
 router.post("/:id/image", auth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const imageUrl = `${process.env.SERVER_URL || "http://localhost:5000"}/uploads/${req.file.filename}`;
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       { image: imageUrl },

@@ -1,9 +1,12 @@
-﻿import { useState } from "react";
-import API_BASE from '../config';
+import { useState } from "react";
+import API_BASE from "../config";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "../components/Toast";
 
 function ForgotPassword() {
+  const toast = useToast();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,25 +15,33 @@ function ForgotPassword() {
   const handleReset = async (e) => {
     e.preventDefault();
 
-    if (newPassword !== confirmPassword) {
-      return alert("Passwords do not match");
+    if (!email.trim()) {
+      toast("Email is required", "error");
+      return;
     }
-
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast("Please enter a valid email", "error");
+      return;
+    }
     if (newPassword.length < 6) {
-      return alert("Password must be at least 6 characters");
+      toast("Password must be at least 6 characters", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast("Passwords do not match", "error");
+      return;
     }
 
     setLoading(true);
     try {
       await axios.post(`${API_BASE}/api/auth/reset-password`, {
-        email,
-        newPassword
+        email: email.trim().toLowerCase(),
+        newPassword,
       });
-
-      alert("Password reset successful! Please login.");
-      window.location.href = "/";
+      toast("Password reset successful! Please login.", "success");
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-      alert(err.response?.data?.message || "Reset failed. Check your email.");
+      toast(err.response?.data?.message || "Reset failed. Check your email.", "error");
     } finally {
       setLoading(false);
     }
@@ -38,7 +49,15 @@ function ForgotPassword() {
 
   return (
     <div className="login-page">
-      <div className="login-left">
+      <div
+        className="login-left"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&q=80&auto=format&fit=crop')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="image-overlay">
           <h1>Reset Your Password</h1>
           <p>Enter your email and choose a new password to regain access.</p>
@@ -64,7 +83,7 @@ function ForgotPassword() {
           <input
             className="login-input"
             type="password"
-            placeholder="New password"
+            placeholder="New password (min 6 characters)"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required

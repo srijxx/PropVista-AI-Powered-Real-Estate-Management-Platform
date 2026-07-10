@@ -18,10 +18,13 @@ function Notifications() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
+    let active = true;
+
     const fetchLatest = () => {
       fetch(`${API_BASE}/api/properties`)
         .then(r => r.json())
         .then(data => {
+          if (!active) return;
           const recent = [...data]
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 3);
@@ -39,7 +42,7 @@ function Notifications() {
 
     fetchLatest();
     const interval = setInterval(fetchLatest, 30000);
-    return () => clearInterval(interval);
+    return () => { active = false; clearInterval(interval); };
   }, []);
 
   // Close on outside click

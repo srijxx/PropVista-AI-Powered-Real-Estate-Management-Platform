@@ -38,7 +38,8 @@ function Sidebar() {
         <button
           className="logout-btn"
           onClick={() => {
-            localStorage.removeItem("token");
+            localStorage.clear();
+            sessionStorage.clear();
             window.location.href = "/";
           }}
         >

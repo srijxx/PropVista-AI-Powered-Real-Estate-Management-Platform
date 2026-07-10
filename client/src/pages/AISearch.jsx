@@ -1,8 +1,9 @@
-﻿import { useState, useRef } from "react";
-import API_BASE from '../config';
+import { useState, useRef } from "react";
+import API_BASE from "../config";
 import { useNavigate, NavLink } from "react-router-dom";
 import "./dashboard.css";
 import Notifications from "../components/Notifications";
+import { getTypeImage } from "../utils/typeImages";
 
 const DEFAULT_SUGGESTIONS = [
   "2 BHK Apartment in Coimbatore",
@@ -13,17 +14,6 @@ const DEFAULT_SUGGESTIONS = [
   "Ready to move properties",
 ];
 
-const TYPE_IMGS = {
-  Apartment: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=260&fit=crop",
-  House: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop",
-  Villa: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&h=260&fit=crop",
-  Flat: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=260&fit=crop",
-};
-
-function getTypeImg(p) {
-  if (p.image) return p.image;
-  return TYPE_IMGS[p.type] || TYPE_IMGS.Apartment;
-}
 
 export default function AISearch() {
   const navigate = useNavigate();
@@ -42,7 +32,7 @@ export default function AISearch() {
     { icon: "🏢", label: "Properties", to: "/properties" },
     { icon: "🗺️", label: "Map View", to: "/explore" },
     { icon: "🔍", label: "AI Search", to: "/ai-search" },
-    { icon: "📅", label: "My Bookings", to: "/properties" },
+    { icon: "📅", label: "My Bookings", to: "/bookings" },
     { icon: "👤", label: "Profile", to: "/profile" },
     { icon: "⚙️", label: "Settings", to: "/settings" },
     { icon: "⎋", label: "Logout", to: "/", logout: true },
@@ -163,7 +153,7 @@ export default function AISearch() {
                     return (
                       <div key={p._id} className="ais-card" onClick={() => navigate(`/properties/${p._id}`)}>
                         <div className="ais-card-img-wrap">
-                          <img src={getTypeImg(p)} alt={p.title} className="ais-card-img" />
+                          <img src={getTypeImage(p)} alt={p.title} className="ais-card-img" />
                           <button
                             className={`ais-heart ${isSaved ? "saved" : ""}`}
                             onClick={e => toggleSave(p._id, e)}

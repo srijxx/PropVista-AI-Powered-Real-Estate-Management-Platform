@@ -1,4 +1,4 @@
-﻿import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import API_BASE from '../config';
 import { useEffect, useState } from "react";
 import AppLayout from "../components/AppLayout";
@@ -102,18 +102,19 @@ function PropertyDetails() {
   };
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/properties/${id}`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/properties/${id}`, { signal: controller.signal })
       .then(r => r.json())
       .then(d => {
         setProperty(d);
-        // Track recently viewed
         try {
           const prev = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
           const updated = [id, ...prev.filter(x => x !== id)].slice(0, 8);
           localStorage.setItem("recentlyViewed", JSON.stringify(updated));
         } catch {}
       })
-      .catch(console.error);
+      .catch(err => { if (err.name !== "AbortError") console.error(err); });
+    return () => controller.abort();
   }, [id]);
 
   if (!property) return (

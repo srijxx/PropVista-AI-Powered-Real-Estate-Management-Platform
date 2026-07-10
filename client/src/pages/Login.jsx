@@ -1,14 +1,13 @@
-﻿import { useState, useEffect } from "react";
-import API_BASE from '../config';
+import { useState, useEffect } from "react";
+import API_BASE from "../config";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useToast } from "../components/Toast";
 
 const heroImg = "https://thermohouse.ie/wp-content/uploads/2019/04/hero-image.jpg";
 
 function Login() {
   const toast = useToast();
-  const navigate = useNavigate();
 
   // modal
   const [showModal, setShowModal] = useState(false);
@@ -41,15 +40,20 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast("Please enter a valid email", "error");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.post(`${API_BASE}/api/auth/login`, { email, password });
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("userId", String(res.data.userId));
+      localStorage.setItem("userName", res.data.name || email.split("@")[0]);
       window.location.href = "/dashboard";
-    } catch {
-      toast("Invalid email or password", "error");
+    } catch (err) {
+      toast(err.response?.data?.message || "Invalid email or password", "error");
     } finally {
       setLoading(false);
     }
@@ -58,6 +62,8 @@ function Login() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!regUsername.trim()) { toast("Username cannot be empty", "warning"); return; }
+    if (!regEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { toast("Please enter a valid email", "error"); return; }
+    if (regPassword.length < 6) { toast("Password must be at least 6 characters", "error"); return; }
     if (!regAgree) { toast("Please agree to the terms of service", "warning"); return; }
     try {
       setRegLoading(true);
@@ -65,7 +71,8 @@ function Login() {
         name: regUsername, username: regUsername, email: regEmail, password: regPassword,
       });
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("userId", String(res.data.userId));
+      localStorage.setItem("userName", res.data.name || regUsername);
       toast("Registration successful!", "success");
       setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
     } catch (err) {
@@ -74,15 +81,6 @@ function Login() {
       setRegLoading(false);
     }
   };
-
-  const NAV_LINKS = [
-    { label: "Dashboard", to: "/dashboard" },
-    { label: "Explore Map", to: "/explore" },
-    { label: "Add Property", to: "/add-property" },
-    { label: "My Properties", to: "/properties" },
-    { label: "Profile", to: "/profile" },
-    { label: "Settings", to: "/settings" },
-  ];
 
   return (
     <div className="landing-page">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import API_BASE from '../config';
+import API_BASE from "../config";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
@@ -20,6 +20,16 @@ function Register() {
       return;
     }
 
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast("Please enter a valid email", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast("Password must be at least 6 characters", "error");
+      return;
+    }
+
     if (!agree) {
       toast("Please agree to the terms of service", "warning");
       return;
@@ -31,7 +41,8 @@ function Register() {
       });
 
       localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId);
+      localStorage.setItem("userId", String(res.data.userId));
+      localStorage.setItem("userName", res.data.name || username);
 
       toast("Registration successful!", "success");
       setTimeout(() => navigate("/dashboard"), 1000);

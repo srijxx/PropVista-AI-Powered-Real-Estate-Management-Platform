@@ -1,7 +1,8 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import API_BASE from '../config';
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
+import { getTypeImage } from "../utils/typeImages";
 import "./dashboard.css";
 
 const STATUS_STYLE = {
@@ -11,13 +12,6 @@ const STATUS_STYLE = {
 };
 
 const TABS = ["Upcoming", "Completed", "Cancelled"];
-
-const TYPE_FALLBACK = {
-  Villa:     "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=140&h=100&fit=crop",
-  House:     "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=140&h=100&fit=crop",
-  Apartment: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=140&h=100&fit=crop",
-  Flat:      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=140&h=100&fit=crop",
-};
 
 const sideLinks = [
   { icon: "📊", label: "Dashboard",   to: "/dashboard" },
@@ -93,12 +87,6 @@ export default function MyBookings() {
 
   const filtered = bookings.filter(b => b.status === activeTab);
   const count    = (s) => bookings.filter(b => b.status === s).length;
-
-  const getImg = (b) => {
-    const p = b.property;
-    if (!p) return TYPE_FALLBACK.House;
-    return p.image || TYPE_FALLBACK[p.type] || TYPE_FALLBACK.House;
-  };
 
   return (
     <div className="ndb-root">
@@ -219,27 +207,26 @@ export default function MyBookings() {
             {/* Booking rows */}
             {!loading && !error && filtered.map(b => {
               const p = b.property;
-              if (!p) return null;
               return (
                 <div key={b._id} className="mb-row">
                   {/* Property image */}
                   <img
-                    src={getImg(b)}
-                    alt={p.title || "Property"}
+                    src={getTypeImage(p || { type: "Apartment" })}
+                    alt={p?.title || "Property"}
                     className="mb-img"
-                    onClick={() => navigate(`/properties/${p._id}`)}
-                    style={{ cursor: "pointer", flexShrink: 0 }}
-                    onError={e => { e.target.src = TYPE_FALLBACK.House; }}
+                    onClick={() => p && navigate(`/properties/${p._id}`)}
+                    style={{ cursor: p ? "pointer" : "default", flexShrink: 0 }}
+                    onError={e => { e.target.onerror = null; e.target.src = getTypeImage({ type: p?.type }); }}
                   />
 
                   {/* Property info */}
                   <div className="mb-info"
-                    onClick={() => navigate(`/properties/${p._id}`)}
-                    style={{ cursor: "pointer" }}>
-                    <p className="mb-prop-name">{p.title || "Property"}</p>
-                    <p className="mb-prop-loc">📍 {p.location || "—"}</p>
+                    onClick={() => p && navigate(`/properties/${p._id}`)}
+                    style={{ cursor: p ? "pointer" : "default" }}>
+                    <p className="mb-prop-name">{p?.title || "Property (removed)"}</p>
+                    <p className="mb-prop-loc">📍 {p?.location || "—"}</p>
                     <p style={{ fontSize: 12, color: "#6b7280", margin: "4px 0 0" }}>
-                      {p.type} · ₹ {Number(p.price || 0).toLocaleString("en-IN")}
+                      {p?.type || "Property"}{p?.price ? ` · ₹ ${Number(p.price).toLocaleString("en-IN")}` : ""}
                     </p>
                     {b.name && (
                       <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 3 }}>
@@ -261,14 +248,14 @@ export default function MyBookings() {
                         ? new Date(b.visitDate).toLocaleDateString("en-IN", {
                             day: "numeric", month: "short", year: "numeric"
                           })
-                        : b.visitDate}
+                        : "—"}
                     </p>
                   </div>
 
                   {/* Visit Time */}
                   <div className="mb-time-col">
                     <p className="mb-col-label">Time</p>
-                    <p className="mb-col-val">{b.visitTime}</p>
+                    <p className="mb-col-val">{b.visitTime || "—"}</p>
                   </div>
 
                   {/* Status + Cancel */}
@@ -286,13 +273,7 @@ export default function MyBookings() {
                     {b.status === "Upcoming" && (
                       <button className="mb-cancel-btn"
                         disabled={cancelling === b._id}
-                        onClick={e => { e.stopPropagation(); handleCancel(b._id); }}
-                        style={{
-                          marginTop: 8, padding: "5px 12px",
-                          background: "none", border: "1px solid #fecaca",
-                          borderRadius: 7, color: "#ef4444",
-                          fontSize: 12, fontWeight: 600, cursor: "pointer"
-                        }}>
+                        onClick={e => { e.stopPropagation(); handleCancel(b._id); }}>
                         {cancelling === b._id ? "Cancelling..." : "Cancel Visit"}
                       </button>
                     )}

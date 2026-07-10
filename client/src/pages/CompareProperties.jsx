@@ -3,6 +3,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
 import API_BASE from "../config";
 import "./dashboard.css";
+import { getTypeImage } from "../utils/typeImages";
 
 const sideLinks = [
   { icon: "📊", label: "Dashboard", to: "/dashboard" },
@@ -14,13 +15,7 @@ const sideLinks = [
   { icon: "⚙️", label: "Settings", to: "/settings" },
 ];
 
-const TYPE_IMGS = {
-  Apartment: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300&h=200&fit=crop",
-  House: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=300&h=200&fit=crop",
-  Villa: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=300&h=200&fit=crop",
-  Flat: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300&h=200&fit=crop",
-};
-
+// Images resolved via shared getTypeImage utility — TYPE_IMGS removed
 function score(p) {
   // Simple investment score from data
   let s = 60;
@@ -40,10 +35,12 @@ export default function CompareProperties() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/properties`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/properties`, { signal: controller.signal })
       .then(r => r.json())
       .then(setAllProperties)
-      .catch(console.error);
+      .catch(err => { if (err.name !== "AbortError") console.error(err); });
+    return () => controller.abort();
   }, []);
 
   const filtered = allProperties.filter(p =>
@@ -96,12 +93,73 @@ export default function CompareProperties() {
             <Notifications />
           </div>
 
-          {/* SEARCH + SELECTORS */}
+          {/* SEARCH + PROPERTY LIST */}
           <div className="cmp2-search-bar">
             <span>🔍</span>
-            <input className="cmp2-search-input" placeholder="Search by title or location..."
-              value={search} onChange={e => setSearch(e.target.value)} />
+            <input
+              className="cmp2-search-input"
+              placeholder="Search by title or location..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
+
+          {/* Show matching property list when user is searching */}
+          {search.trim() && (
+            <div style={{
+              background: "#fff", borderRadius: 12,
+              border: "1px solid #e5e7eb", marginBottom: 16,
+              maxHeight: 280, overflowY: "auto",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+            }}>
+              {filtered.length === 0 ? (
+                <div style={{ padding: "24px", textAlign: "center", color: "#9ca3af", fontSize: 14 }}>
+                  No properties found for "{search}"
+                </div>
+              ) : filtered.map(p => (
+                <div
+                  key={p._id}
+                  onClick={() => {
+                    if (!selA || selA === p._id) { setSelA(p._id); }
+                    else if (!selB || selB === p._id) { setSelB(p._id); }
+                    else { setSelA(p._id); }
+                    setSearch("");
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 14,
+                    padding: "10px 16px", cursor: "pointer",
+                    borderBottom: "1px solid #f3f4f6",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#f8fafc"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <img
+                    src={getTypeImage(p)}
+                    alt={p.title}
+                    style={{ width: 56, height: 42, objectFit: "cover", borderRadius: 8, flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#1e293b",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {p.title}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#6b7280" }}>
+                      📍 {p.location} · {p.type}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#6366f1" }}>
+                      ₹ {(p.price / 100000).toFixed(1)}L
+                    </p>
+                    <p style={{ margin: 0, fontSize: 10, color: "#9ca3af" }}>
+                      {selA && selB ? "Replace A" : selA ? "Set as B" : "Set as A"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="cmp2-selectors">
             <div className="cmp2-selector">
@@ -127,7 +185,7 @@ export default function CompareProperties() {
               <div className="cmp2-cards-row">
                 <div className={`cmp2-prop-card ${winner?._id === a._id ? "winner" : ""}`}>
                   {winner?._id === a._id && <div className="cmp2-winner-ribbon">🏆 Best Deal</div>}
-                  <img src={a.image || TYPE_IMGS[a.type] || TYPE_IMGS.Apartment} alt={a.title} className="cmp2-prop-img" />
+                  <img src={getTypeImage(a)} alt={a.title} className="cmp2-prop-img" />
                   <p className="cmp2-prop-name">{a.title}</p>
                   <p className="cmp2-prop-loc">📍 {a.location}</p>
                   <p className="cmp2-prop-price">₹ {(a.price/100000).toFixed(1)} Lakh</p>
@@ -151,7 +209,7 @@ export default function CompareProperties() {
 
                 <div className={`cmp2-prop-card ${winner?._id === b._id ? "winner" : ""}`}>
                   {winner?._id === b._id && <div className="cmp2-winner-ribbon">🏆 Best Deal</div>}
-                  <img src={b.image || TYPE_IMGS[b.type] || TYPE_IMGS.Apartment} alt={b.title} className="cmp2-prop-img" />
+                  <img src={getTypeImage(b)} alt={b.title} className="cmp2-prop-img" />
                   <p className="cmp2-prop-name">{b.title}</p>
                   <p className="cmp2-prop-loc">📍 {b.location}</p>
                   <p className="cmp2-prop-price">₹ {(b.price/100000).toFixed(1)} Lakh</p>

@@ -1,18 +1,9 @@
-import { useNavigate } from "react-router-dom";
+// AppLayout — thin wrapper only.
+// Each page manages its own sidebar + topbar via the ndb-root / ndb-sidebar layout.
+// Do NOT add a global navbar here — pages already have their own navigation.
 
 function AppLayout({ children }) {
-  return (
-    <div className="app-layout">
-      <div className="app-content">
-        {children}
-      </div>
-    </div>
-  );
+  return <>{children}</>;
 }
 
 export default AppLayout;
-
-
-
-
-

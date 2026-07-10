@@ -21,19 +21,18 @@ function ViewProperties() {
   const [confirmId, setConfirmId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // FETCH PROPERTIES
+  // Abort controller to clean up fetch on unmount
   useEffect(() => {
+    const controller = new AbortController();
     setLoading(true);
-    fetch(`${API_BASE}/api/properties`)
+    fetch(`${API_BASE}/api/properties`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
-        // Sort newest first by createdAt, then by _id as tiebreaker
         const sorted = [...data].sort((a, b) => {
           const diff = new Date(b.createdAt) - new Date(a.createdAt);
           if (diff !== 0) return diff;
@@ -43,9 +42,12 @@ function ViewProperties() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
-        setLoading(false);
+        if (err.name !== "AbortError") {
+          console.error(err);
+          setLoading(false);
+        }
       });
+    return () => controller.abort();
   }, []);
 
   // Reset page on search/filter change
@@ -234,7 +236,7 @@ function ViewProperties() {
                   </td>
 
                   <td className="price-cell">
-                    ₹ {p.price || 0}
+                  ₹ {Number(p.price || 0).toLocaleString("en-IN")}
                     <br />
                     <small>{p.status || "—"}</small>
                   </td>
@@ -242,9 +244,10 @@ function ViewProperties() {
                   <td>
                     <button
                       className="action view"
-                      onClick={() =>
-                        (window.location.href = `/properties/${p._id}`)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/properties/${p._id}`);
+                      }}
                     >
                       View
                     </button>
@@ -252,7 +255,10 @@ function ViewProperties() {
                     <button
                       className="action edit"
                       disabled={actionLoading}
-                      onClick={() => handleEdit(p)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(p);
+                      }}
                     >
                       {actionLoading ? "Saving..." : "Edit"}
                     </button>
@@ -260,7 +266,10 @@ function ViewProperties() {
                     <button
                       className="action delete"
                       disabled={actionLoading}
-                      onClick={() => handleDelete(p._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(p._id);
+                      }}
                     >
                       {actionLoading ? "Deleting..." : "Delete"}
                     </button>

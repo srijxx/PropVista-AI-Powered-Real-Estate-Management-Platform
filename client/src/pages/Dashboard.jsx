@@ -8,8 +8,7 @@ import AIAssistant from "../components/AIAssistant";
 import Notifications from "../components/Notifications";
 
 // helpers
-import { getTypeImage, getThumbImage } from "../utils/typeImages";
-function getTypeImg(p) { return getTypeImage(p); }
+import { getTypeImage } from "../utils/typeImages";
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
@@ -216,7 +215,7 @@ export default function Dashboard() {
                     {heroResults.map(p=>(
                       <div key={p._id} className="ndb-rec-card" onClick={()=>navigate(`/properties/${p._id}`)}>
                         <div className="ndb-rec-img-box">
-                          <img src={p.image||getTypeImg(p)} alt={p.title} className="ndb-rec-img"/>
+                        <img src={getTypeImage(p)} alt={p.title} className="ndb-rec-img"/>
                           <span className={`ndb-match ${p.status==="For Sale"?"":"rent"}`}>{p.status}</span>
                         </div>
                         <div className="ndb-rec-body">
@@ -399,7 +398,7 @@ export default function Dashboard() {
                   return (
                     <div key={p._id} className="ndb-rec-card" onClick={()=>navigate(`/properties/${p._id}`)}>
                       <div className="ndb-rec-img-box">
-                        <img src={p.image||getTypeImg(p)} alt={p.title} className="ndb-rec-img"/>
+                        <img src={getTypeImage(p)} alt={p.title} className="ndb-rec-img"/>
                         <span className="ndb-match">{match}% Match</span>
                         <button className="ndb-rec-heart" onClick={e=>{e.stopPropagation();}}>🤍</button>
                       </div>

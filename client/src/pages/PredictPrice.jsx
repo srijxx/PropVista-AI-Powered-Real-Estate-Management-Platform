@@ -1,7 +1,8 @@
-﻿import { useState } from "react";
-import API_BASE from '../config';
+import { useState } from "react";
+import API_BASE from "../config";
 import { useNavigate, NavLink } from "react-router-dom";
 import Notifications from "../components/Notifications";
+import { getTypeImage } from "../utils/typeImages";
 import "./dashboard.css";
 
 const AREAS = [
@@ -118,8 +119,6 @@ export default function PredictPrice() {
         setShowSimilar(true);
       });
   };
-
-  const userName = localStorage.getItem("userName") || "User";
 
   return (
     <div className="ndb-root">
@@ -265,7 +264,9 @@ export default function PredictPrice() {
                 {similarProps.map((p,i)=>(
                   <div key={p._id} className="ais-card" onClick={()=>navigate(`/properties/${p._id}`)}>
                     <div className="ais-card-img-wrap">
-                      <img src={p.image||`https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop`} alt={p.title} className="ais-card-img"/>
+                      <img src={getTypeImage(p)} alt={p.title} className="ais-card-img"
+                        onError={e => { e.target.onerror = null; e.target.src = getTypeImage({ type: p.type }); }}
+                      />
                     </div>
                     <div className="ais-card-body">
                       <p className="ais-card-title">{p.title}</p>

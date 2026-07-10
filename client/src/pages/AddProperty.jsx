@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import AppLayout from "../components/AppLayout";
 import API_BASE from "../config";
 import MapPicker from "../components/MapPicker";
@@ -100,7 +100,7 @@ function AddProperty() {
 
   return (
     <AppLayout>
-      <div style={{ minHeight: "100%", background: "#f1f5f9" }}>
+      <div style={{ height: "100vh", overflowY: "auto", background: "#f1f5f9" }}>
 
         {/* ── TOP BANNER ── */}
         <div style={{

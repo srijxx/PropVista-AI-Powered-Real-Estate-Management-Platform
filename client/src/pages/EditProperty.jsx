@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import API_BASE from '../config';
+import API_BASE from "../config";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
@@ -29,20 +29,23 @@ function EditProperty() {
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
   useEffect(() => {
+    let cancelled = false;
     axios.get(`${API_BASE}/api/properties/${id}`).then((res) => {
+      if (cancelled) return;
       const p = res.data;
       setForm({
-        title: p.title || "",
-        type: p.type || "",
-        location: p.location || "",
-        price: p.price || "",
-        bedrooms: p.bedrooms || "",
+        title:     p.title     || "",
+        type:      p.type      || "",
+        location:  p.location  || "",
+        price:     p.price     || "",
+        bedrooms:  p.bedrooms  || "",
         bathrooms: p.bathrooms || "",
-        area: p.area || "",
-        status: p.status || "For Sale"
+        area:      p.area      || "",
+        status:    p.status    || "For Sale",
       });
       if (p.image) setImagePreview(p.image);
-    });
+    }).catch(console.error);
+    return () => { cancelled = true; };
   }, [id]);
 
   const handleChange = (e) => {
@@ -74,8 +77,8 @@ function EditProperty() {
 
       toast("Property updated successfully", "success");
       setTimeout(() => navigate("/properties"), 1200);
-    } catch {
-      toast("Error updating property", "error");
+    } catch (err) {
+      toast(err.response?.data?.message || "Error updating property", "error");
     } finally {
       setLoading(false);
     }

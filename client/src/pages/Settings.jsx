@@ -1,42 +1,43 @@
 import { useState, useEffect } from "react";
-import API_BASE from '../config';
+import API_BASE from "../config";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../components/Toast";
 import AppLayout from "../components/AppLayout";
 
 function Settings() {
-  const [notifications, setNotifications] = useState(true);
-  const [propertyAlerts, setPropertyAlerts] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [notifications,   setNotifications]   = useState(true);
+  const [propertyAlerts,  setPropertyAlerts]  = useState(true);
+  const [darkMode,        setDarkMode]        = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const navigate = useNavigate();
-  const toast = useToast();
+  const toast    = useToast();
 
   const userId = localStorage.getItem("userId");
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  const [userName, setUserName] = useState(localStorage.getItem("userName") || "User");
-  const [userEmail, setUserEmail] = useState(localStorage.getItem("userEmail") || "");
-  const [userAvatar, setUserAvatar] = useState(null);
+  const token  = localStorage.getItem("token") || sessionStorage.getItem("token");
 
+  // Settings page — userName only needed for profile fetch side-effect
   useEffect(() => {
     if (localStorage.getItem("theme") === "dark") {
       setDarkMode(true);
       document.body.classList.add("dark-mode");
     }
-    if (userId) {
-      fetch(`${API_BASE}/api/users/profile/${userId}`)
-        .then(r => r.json())
-        .then(d => {
-          const name = d.firstName || d.username || "User";
-          setUserName(name);
-          setUserEmail(d.email || "");
-          if (d.avatar) setUserAvatar(`${API_BASE}/uploads/${d.avatar}`);
-          localStorage.setItem("userName", name);
-          localStorage.setItem("userEmail", d.email || "");
-        }).catch(() => {});
-    }
-  }, [userId]);
+
+    if (!userId || !token) return;
+
+    fetch(`${API_BASE}/api/users/profile/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        const name = d.firstName
+          ? `${d.firstName} ${d.lastName || ""}`.trim()
+          : d.username || d.name || "User";
+        localStorage.setItem("userName",  name);
+        localStorage.setItem("userEmail", d.email || "");
+      })
+      .catch(() => {});
+  }, [userId, token]);
 
   const handleDarkMode = () => {
     const next = !darkMode;
@@ -45,24 +46,38 @@ function Settings() {
     localStorage.setItem("theme", next ? "dark" : "light");
   };
 
-  const handleLogout = () => { localStorage.clear(); sessionStorage.clear(); window.location.href = "/"; };
-
-  const handleDeleteAccount = async () => {
-    try {
-      await fetch(`${API_BASE}/api/users/profile/${userId}`, {
-        method: "DELETE", headers: { Authorization: `Bearer ${token}` }
-      });
-      localStorage.clear();
-      window.location.href = "/";
-    } catch { toast("Failed to delete account", "error"); }
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "/";
   };
 
-  const initials = userName?.charAt(0).toUpperCase() || "U";
+  const handleDeleteAccount = async () => {
+    if (!userId || !token) {
+      toast("Not logged in", "error");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/users/profile/${userId}`, {
+        method:  "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/";
+    } catch (err) {
+      toast(err.message || "Failed to delete account", "error");
+    }
+  };
 
   const Toggle = ({ checked, onChange }) => (
-    <label className="st2-toggle" onClick={e => e.stopPropagation()}>
+    <label className="st2-toggle" onClick={(e) => e.stopPropagation()}>
       <input type="checkbox" checked={checked} onChange={onChange} />
-      <span className="st2-track"><span className="st2-thumb" /></span>
+      <span className="st2-track">
+        <span className="st2-thumb" />
+      </span>
     </label>
   );
 
@@ -218,22 +233,30 @@ function Settings() {
         {/* FOOTER */}
         <p className="st2-footer">PropVista v1.0.0 &nbsp;•&nbsp; Build better. Live better.</p>
 
-        {/* DELETE MODAL */}
+        {/* DELETE CONFIRM MODAL */}
         {showDeleteConfirm && (
           <div className="landing-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-            <div className="landing-modal" style={{ maxWidth: "380px" }} onClick={e => e.stopPropagation()}>
+            <div
+              className="landing-modal"
+              style={{ maxWidth: "380px" }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <div style={{ textAlign: "center", fontSize: "44px", marginBottom: "12px" }}>⚠️</div>
               <h2 style={{ textAlign: "center", marginBottom: "8px" }}>Delete Account?</h2>
               <p style={{ textAlign: "center", color: "#6b7280", fontSize: "14px", marginBottom: "24px" }}>
                 This will permanently delete your account and all your properties. This cannot be undone.
               </p>
               <div style={{ display: "flex", gap: "12px" }}>
-                <button onClick={() => setShowDeleteConfirm(false)}
-                  style={{ flex:1, padding:"11px", borderRadius:"10px", border:"1px solid #e5e7eb", background:"#fff", cursor:"pointer", fontWeight:600 }}>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  style={{ flex: 1, padding: "11px", borderRadius: "10px", border: "1px solid #e5e7eb", background: "#fff", cursor: "pointer", fontWeight: 600 }}
+                >
                   Cancel
                 </button>
-                <button onClick={handleDeleteAccount}
-                  style={{ flex:1, padding:"11px", borderRadius:"10px", border:"none", background:"#ef4444", color:"#fff", cursor:"pointer", fontWeight:600 }}>
+                <button
+                  onClick={handleDeleteAccount}
+                  style={{ flex: 1, padding: "11px", borderRadius: "10px", border: "none", background: "#ef4444", color: "#fff", cursor: "pointer", fontWeight: 600 }}
+                >
                   Delete
                 </button>
               </div>

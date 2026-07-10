@@ -41,14 +41,14 @@ function App() {
   useEffect(() => {
     const theme = localStorage.getItem("theme");
     if (theme === "dark") {
-      document.body.classList.add("dark");
+      document.body.classList.add("dark-mode"); // ← was "dark", must match CSS class
     }
   }, []);
 
   return (
     <ToastProvider>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<PublicRoute element={<Login />} />} />
         <Route path="/login" element={<PublicRoute element={<Login />} />} />
         <Route path="/register" element={<PublicRoute element={<Register />} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -60,6 +60,7 @@ function App() {
         <Route path="/properties/:id" element={<PrivateRoute element={<PropertyDetails />} />} />
         <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
         <Route path="/map-view" element={<PrivateRoute element={<MapView />} />} />
+        {/* /map-view and /explore both render the same MapView component */}
         <Route path="/explore" element={<PrivateRoute element={<ExploreProperties />} />} />
         <Route path="/settings" element={<PrivateRoute element={<Settings />} />} />
         <Route path="/policy" element={<PrivateRoute element={<PolicyPage />} />} />

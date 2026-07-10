@@ -1,97 +1,22 @@
+/**
+ * routes/auth.js
+ * --------------
+ * All auth endpoints delegate to authController for clean separation.
+ * Handlers live in controllers/authController.js.
+ */
+
 const express = require("express");
-const router = express.Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const router  = express.Router();
 
-// REGISTER
-router.post("/register", async (req, res) => {
-  try {
-    const { name, username, email, password } = req.body;
+const { register, login, resetPassword } = require("../controllers/authController");
 
-    if (!name || !name.trim()) return res.status(400).json({ message: "Name is required" });
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ message: "Valid email is required" });
-    }
-    if (!password || password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
-    }
+// POST /api/auth/register
+router.post("/register", register);
 
-    const existing = await User.findOne({ email: email.toLowerCase() });
-    if (existing) return res.status(400).json({ message: "Email already registered" });
+// POST /api/auth/login
+router.post("/login", login);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      name,
-      username: username || name,
-      email: email.toLowerCase(),
-      password: hashedPassword
-    });
-
-    await user.save();
-
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.json({ message: "Registered successfully", token, userId: user._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// LOGIN
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
-
-    const user = await User.findOne({
-      email: email.toLowerCase()
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    res.json({ message: "Login successful", token, userId: user._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// FORGOT / RESET PASSWORD
-router.post("/reset-password", async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
-
-    res.json({ message: "Password reset successful" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// POST /api/auth/reset-password
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

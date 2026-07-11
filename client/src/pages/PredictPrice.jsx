@@ -82,6 +82,7 @@ const sideLinks = [
   { icon: "🗺️", label: "Map View", to: "/explore" },
   { icon: "🔍", label: "AI Search", to: "/ai-search" },
   { icon: "📅", label: "My Bookings", to: "/bookings" },
+  { icon: "➕", label: "Add Property", to: "/add-property" },
   { icon: "👤", label: "Profile", to: "/profile" },
   { icon: "⚙️", label: "Settings", to: "/settings" },
 ];

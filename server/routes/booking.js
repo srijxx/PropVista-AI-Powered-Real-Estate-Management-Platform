@@ -1,7 +1,14 @@
-const express = require("express");
-const router  = express.Router();
-const Booking = require("../models/Booking");
-const auth    = require("../middleware/authMiddleware");
+const express  = require("express");
+const router   = express.Router();
+const Booking  = require("../models/Booking");
+const Property = require("../models/Property");
+const User     = require("../models/User");
+const auth     = require("../middleware/authMiddleware");
+const {
+  sendOwnerBookingNotification,
+  sendVisitorBookingConfirmation,
+  sendCancellationEmail,
+} = require("../utils/mailer");
 
 // ─── CREATE BOOKING ───────────────────────────────────────────────────────────
 router.post("/", auth, async (req, res) => {
@@ -16,17 +23,75 @@ router.post("/", auth, async (req, res) => {
     if (visitDate < today)
       return res.status(400).json({ message: "Visit date cannot be in the past" });
 
+    // Save booking
     const booking = new Booking({
       property: propertyId,
-      user: req.user.id,
+      user:     req.user.id,
       visitDate,
       visitTime,
       name:    name    || "",
       phone:   phone   || "",
       message: message || "",
-      status: "Upcoming",
+      status:  "Upcoming",
     });
     await booking.save();
+
+    // ── SEND EMAILS (non-blocking — never crash the booking if email fails) ──
+    // Fetch property and visitor user details for the emails
+    setImmediate(async () => {
+      try {
+        const [property, visitor] = await Promise.all([
+          Property.findById(propertyId).lean(),
+          User.findById(req.user.id).select("name email").lean(),
+        ]);
+
+        if (!property || !visitor) return;
+
+        const visitorName  = name  || visitor.name  || "Visitor";
+        const visitorPhone = phone || "Not provided";
+        const visitorEmail = visitor.email;
+
+        // 1. Email → Property owner
+        if (property.ownerEmail && property.ownerEmail !== "owner@demo.com") {
+          await sendOwnerBookingNotification({
+            ownerEmail:       property.ownerEmail,
+            ownerName:        property.ownerName,
+            visitorName,
+            visitorPhone,
+            visitorEmail,
+            propertyTitle:    property.title,
+            propertyLocation: property.location,
+            propertyType:     property.type,
+            propertyPrice:    property.price,
+            visitDate,
+            visitTime,
+            message:          message || "",
+            bookingId:        booking._id.toString(),
+          });
+        }
+
+        // 2. Confirmation email → Visitor
+        if (visitorEmail) {
+          await sendVisitorBookingConfirmation({
+            visitorEmail,
+            visitorName,
+            propertyTitle:    property.title,
+            propertyLocation: property.location,
+            propertyType:     property.type,
+            propertyPrice:    property.price,
+            ownerName:        property.ownerName,
+            ownerPhone:       property.ownerPhone,
+            ownerEmail:       property.ownerEmail,
+            visitDate,
+            visitTime,
+            bookingId:        booking._id.toString(),
+          });
+        }
+      } catch (emailErr) {
+        console.error("[booking] Email error:", emailErr.message);
+      }
+    });
+
     res.status(201).json(booking);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -50,7 +115,7 @@ router.get("/my", auth, async (req, res) => {
 router.patch("/:id/cancel", auth, async (req, res) => {
   try {
     const booking = await Booking.findOne({
-      _id: req.params.id,
+      _id:  req.params.id,
       user: req.user.id,
     });
     if (!booking)
@@ -60,6 +125,49 @@ router.patch("/:id/cancel", auth, async (req, res) => {
 
     booking.status = "Cancelled";
     await booking.save();
+
+    // ── SEND CANCELLATION EMAILS (non-blocking) ──────────────────────────────
+    setImmediate(async () => {
+      try {
+        const [property, visitor] = await Promise.all([
+          Property.findById(booking.property).lean(),
+          User.findById(req.user.id).select("name email").lean(),
+        ]);
+
+        if (!property || !visitor) return;
+
+        const cancelledBy = booking.name || visitor.name || "Visitor";
+
+        // Notify owner
+        if (property.ownerEmail && property.ownerEmail !== "owner@demo.com") {
+          await sendCancellationEmail({
+            toEmail:       property.ownerEmail,
+            toName:        property.ownerName,
+            role:          "owner",
+            propertyTitle: property.title,
+            visitDate:     booking.visitDate,
+            visitTime:     booking.visitTime,
+            cancelledBy,
+          });
+        }
+
+        // Notify visitor
+        if (visitor.email) {
+          await sendCancellationEmail({
+            toEmail:       visitor.email,
+            toName:        booking.name || visitor.name,
+            role:          "visitor",
+            propertyTitle: property.title,
+            visitDate:     booking.visitDate,
+            visitTime:     booking.visitTime,
+            cancelledBy,
+          });
+        }
+      } catch (emailErr) {
+        console.error("[booking/cancel] Email error:", emailErr.message);
+      }
+    });
+
     res.json(booking);
   } catch (err) {
     res.status(500).json({ message: err.message });

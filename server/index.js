@@ -8,18 +8,24 @@ const connectDB = require("./config/db");
 const app = express();
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
-// Accept comma-separated origins from CLIENT_URL env var, or allow all in dev
 const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(",").map(o => o.trim())
   : ["http://localhost:3000", "http://localhost:3001"];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
+    // Always allow requests with no origin (curl, Postman, mobile apps)
     if (!origin) return callback(null, true);
+    // In development (no CLIENT_URL set) allow all localhost ports
+    if (!process.env.CLIENT_URL) return callback(null, true);
+    // Allow any localhost origin in development
+    if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+      return callback(null, true);
+    }
     if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
       return callback(null, true);
     }
+    // In production only block non-listed origins
     callback(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
@@ -46,6 +52,7 @@ app.use("/api/bookings",   require("./routes/booking"));
 app.use("/api/feedback",   require("./routes/feedback"));
 app.use("/api/contact",    require("./routes/contact"));
 app.use("/api/ai",         require("./routes/ai"));
+app.use("/api/reviews",    require("./routes/review"));
 
 // ─── 404 HANDLER ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -61,4 +68,4 @@ app.use((err, req, res, next) => {
 
 // ─── START ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`Server started on port ${PORT}`));

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import API_BASE from '../config';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
@@ -71,6 +71,40 @@ function PropertyDetails() {
   const [booking, setBooking] = useState(false);
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
+  // ─── REVIEWS STATE ───────────────────────────────────────────────────────
+  const [reviews, setReviews]           = useState([]);
+  const [avgRating, setAvgRating]       = useState(0);
+  const [totalCount, setTotalCount]     = useState(0);
+  const [distribution, setDistribution] = useState([]);
+  const [myRating, setMyRating]         = useState(0);
+  const [hoverRating, setHoverRating]   = useState(0);
+  const [myComment, setMyComment]       = useState("");
+  const [submitting, setSubmitting]     = useState(false);
+  const [myReview, setMyReview]         = useState(null);
+  const [editMode, setEditMode]         = useState(false);
+  const userId   = localStorage.getItem("userId");
+  const userName = localStorage.getItem("userName") || "User";
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API_BASE}/api/reviews/${id}`);
+      const data = await res.json();
+      setReviews(data.reviews || []);
+      setAvgRating(data.avgRating || 0);
+      setTotalCount(data.totalCount || 0);
+      setDistribution(data.distribution || []);
+      // Pre-fill form if user already reviewed
+      const mine = (data.reviews || []).find(r => r.user === userId || r.user?._id === userId);
+      if (mine) {
+        setMyReview(mine);
+        setMyRating(mine.rating);
+        setMyComment(mine.comment || "");
+      }
+    } catch {}
+  }, [id, userId]);
+
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+
   const toggleSave = () => {
     try {
       const prev = JSON.parse(localStorage.getItem("savedProperties") || "[]");
@@ -99,6 +133,42 @@ function PropertyDetails() {
       }
     } catch { toast("Booking failed. Please try again.", "error"); }
     finally { setBooking(false); }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!token) { toast("Please login to submit a review", "error"); return; }
+    if (!myRating) { toast("Please select a star rating", "error"); return; }
+    setSubmitting(true);
+    try {
+      const res  = await fetch(`${API_BASE}/api/reviews/${id}`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body:    JSON.stringify({ rating: myRating, comment: myComment, userName }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      toast(myReview ? "Review updated!" : "Review submitted!", "success");
+      setEditMode(false);
+      fetchReviews();
+    } catch (err) {
+      toast(err.message || "Failed to submit review", "error");
+    } finally { setSubmitting(false); }
+  };
+
+  const handleReviewDelete = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/reviews/${id}`, {
+        method:  "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        toast("Review deleted", "success");
+        setMyReview(null); setMyRating(0); setMyComment(""); setEditMode(false);
+        fetchReviews();
+      }
+    } catch { toast("Failed to delete review", "error"); }
   };
 
   useEffect(() => {
@@ -273,6 +343,170 @@ function PropertyDetails() {
             </div>
           </div>
         )}
+
+        {/* ════════════════════════════════════════════════════════════════
+            REVIEWS & RATINGS SECTION
+        ════════════════════════════════════════════════════════════════ */}
+        <div className="pd-reviews-section">
+          <h3 className="pd-section-title">⭐ Ratings & Reviews</h3>
+
+          {/* ── SUMMARY ROW ── */}
+          <div className="pd-review-summary">
+            {/* Big score */}
+            <div className="pd-review-score-box">
+              <div className="pd-review-big-score">{avgRating || "—"}</div>
+              <div className="pd-review-stars-row">
+                {[1,2,3,4,5].map(s => (
+                  <span key={s} style={{ color: s <= Math.round(avgRating) ? "#f59e0b" : "#e5e7eb", fontSize: 20 }}>★</span>
+                ))}
+              </div>
+              <div className="pd-review-total">{totalCount} {totalCount === 1 ? "review" : "reviews"}</div>
+            </div>
+
+            {/* Bar distribution */}
+            <div className="pd-review-bars">
+              {distribution.map(d => (
+                <div key={d.star} className="pd-review-bar-row">
+                  <span className="pd-review-bar-label">{d.star} ★</span>
+                  <div className="pd-review-bar-track">
+                    <div
+                      className="pd-review-bar-fill"
+                      style={{ width: totalCount ? `${Math.round((d.count / totalCount) * 100)}%` : "0%" }}
+                    />
+                  </div>
+                  <span className="pd-review-bar-count">{d.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── WRITE / EDIT REVIEW FORM ── */}
+          <div className="pd-write-review">
+            <h4 className="pd-write-title">
+              {myReview && !editMode ? "Your Review" : myReview && editMode ? "Edit Your Review" : "Write a Review"}
+            </h4>
+
+            {/* Already reviewed — show existing + edit/delete buttons */}
+            {myReview && !editMode ? (
+              <div className="pd-my-review-card">
+                <div className="pd-review-card-top">
+                  <div className="pd-reviewer-avatar">{userName.charAt(0).toUpperCase()}</div>
+                  <div className="pd-reviewer-info">
+                    <p className="pd-reviewer-name">{myReview.userName || userName}</p>
+                    <div className="pd-reviewer-stars">
+                      {[1,2,3,4,5].map(s => (
+                        <span key={s} style={{ color: s <= myReview.rating ? "#f59e0b" : "#e5e7eb", fontSize: 16 }}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pd-my-review-actions">
+                    <button className="pd-review-edit-btn" onClick={() => { setEditMode(true); setMyRating(myReview.rating); setMyComment(myReview.comment || ""); }}>
+                      ✏️ Edit
+                    </button>
+                    <button className="pd-review-delete-btn" onClick={handleReviewDelete}>
+                      🗑 Delete
+                    </button>
+                  </div>
+                </div>
+                {myReview.comment && <p className="pd-review-comment-text">"{myReview.comment}"</p>}
+              </div>
+            ) : (
+              /* Review form — for new or edit */
+              <form className="pd-review-form" onSubmit={handleReviewSubmit}>
+                {/* Star picker */}
+                <div className="pd-star-picker">
+                  <label className="pd-form-label">Your Rating *</label>
+                  <div className="pd-star-row">
+                    {[1,2,3,4,5].map(s => (
+                      <button
+                        key={s} type="button"
+                        className="pd-star-btn"
+                        onMouseEnter={() => setHoverRating(s)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setMyRating(s)}
+                      >
+                        <span style={{
+                          color: s <= (hoverRating || myRating) ? "#f59e0b" : "#d1d5db",
+                          fontSize: 32,
+                          transition: "color 0.1s, transform 0.1s",
+                          display: "inline-block",
+                          transform: s <= (hoverRating || myRating) ? "scale(1.15)" : "scale(1)",
+                        }}>★</span>
+                      </button>
+                    ))}
+                    {(hoverRating || myRating) > 0 && (
+                      <span className="pd-star-label">
+                        {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][hoverRating || myRating]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comment */}
+                <div className="pd-form-group">
+                  <label className="pd-form-label">Your Comment <span style={{ color: "#9ca3af", fontWeight: 400 }}>(optional)</span></label>
+                  <textarea
+                    className="pd-review-textarea"
+                    rows={3}
+                    placeholder="Share your experience — what did you like or dislike about this property?"
+                    value={myComment}
+                    onChange={e => setMyComment(e.target.value)}
+                    maxLength={500}
+                  />
+                  <p className="pd-char-count">{myComment.length}/500</p>
+                </div>
+
+                <div className="pd-review-form-actions">
+                  {editMode && (
+                    <button type="button" className="pd-review-cancel-btn" onClick={() => { setEditMode(false); setMyRating(myReview?.rating || 0); setMyComment(myReview?.comment || ""); }}>
+                      Cancel
+                    </button>
+                  )}
+                  <button type="submit" className="pd-review-submit-btn" disabled={submitting || !myRating}>
+                    {submitting ? "Submitting..." : myReview ? "Update Review" : "Submit Review"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* ── ALL REVIEWS LIST ── */}
+          <div className="pd-reviews-list">
+            {reviews.filter(r => r.user !== userId && r.user?._id !== userId).length === 0 && !myReview && (
+              <div className="pd-no-reviews">
+                <span style={{ fontSize: 36 }}>💬</span>
+                <p>No reviews yet. Be the first to share your experience!</p>
+              </div>
+            )}
+
+            {reviews
+              .filter(r => r.user !== userId && r.user?._id !== userId)
+              .map(r => (
+                <div key={r._id} className="pd-review-card">
+                  <div className="pd-review-card-top">
+                    <div className="pd-reviewer-avatar" style={{ background: "#6366f1" }}>
+                      {(r.userName || "U").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="pd-reviewer-info">
+                      <p className="pd-reviewer-name">{r.userName || "Anonymous"}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div className="pd-reviewer-stars">
+                          {[1,2,3,4,5].map(s => (
+                            <span key={s} style={{ color: s <= r.rating ? "#f59e0b" : "#e5e7eb", fontSize: 14 }}>★</span>
+                          ))}
+                        </div>
+                        <span style={{ fontSize: 11, color: "#9ca3af" }}>
+                          {new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {r.comment && <p className="pd-review-comment-text">"{r.comment}"</p>}
+                </div>
+              ))}
+          </div>
+        </div>
+        {/* ═══════════════════ END REVIEWS ═══════════════════ */}
 
       </div>
 

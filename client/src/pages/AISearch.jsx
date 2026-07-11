@@ -24,8 +24,6 @@ export default function AISearch() {
     try { return JSON.parse(localStorage.getItem("savedProperties") || "[]"); } catch { return []; }
   });
   const inputRef = useRef(null);
-  const userName = localStorage.getItem("userName") || "User";
-  const initial = userName.charAt(0).toUpperCase();
 
   const sideLinks = [
     { icon: "📊", label: "Dashboard", to: "/dashboard" },
@@ -33,6 +31,7 @@ export default function AISearch() {
     { icon: "🗺️", label: "Map View", to: "/explore" },
     { icon: "🔍", label: "AI Search", to: "/ai-search" },
     { icon: "📅", label: "My Bookings", to: "/bookings" },
+    { icon: "➕", label: "Add Property", to: "/add-property" },
     { icon: "👤", label: "Profile", to: "/profile" },
     { icon: "⚙️", label: "Settings", to: "/settings" },
     { icon: "⎋", label: "Logout", to: "/", logout: true },
@@ -99,7 +98,6 @@ export default function AISearch() {
             </div>
             <div className="ais-header-right">
               <Notifications />
-              <div className="ais-avatar">{initial}</div>
             </div>
           </div>
 
@@ -147,8 +145,9 @@ export default function AISearch() {
               )}
               {results.properties?.length > 0 ? (
                 <div className="ais-grid">
-                  {results.properties.map((p, i) => {
-                    const match = Math.max(70, 95 - i * 3);
+                  {results.properties.map((p) => {
+                    // Use real match score from backend, fallback to 0
+                    const match = Math.min(100, Math.max(0, p._matchScore || 0));
                     const isSaved = savedIds.includes(p._id);
                     return (
                       <div key={p._id} className="ais-card" onClick={() => navigate(`/properties/${p._id}`)}>
@@ -166,7 +165,9 @@ export default function AISearch() {
                           <p className="ais-card-loc">📍 {p.location}</p>
                           <p className="ais-card-area">{p.area} sqft</p>
                           <div className="ais-card-footer">
-                            <span className="ais-match">{match}% Match</span>
+                            <span className="ais-match" style={{
+                              color: match >= 80 ? "#16a34a" : match >= 50 ? "#f97316" : "#6b7280"
+                            }}>{match}% Match</span>
                             <button className="ais-view-btn" onClick={() => navigate(`/properties/${p._id}`)}>
                               View Details
                             </button>
@@ -197,3 +198,4 @@ export default function AISearch() {
     </div>
   );
 }
+

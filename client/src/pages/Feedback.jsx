@@ -41,18 +41,21 @@ function Feedback() {
         body: JSON.stringify({
           category, rating, message,
           userName: localStorage.getItem("userName") || "Anonymous",
-          userId: localStorage.getItem("userId")
-        })
+          userId: localStorage.getItem("userId"),
+        }),
       });
       if (res.ok) {
         setSubmitted(true);
       } else {
-        toast("Failed to submit feedback. Please try again.", "error");
+        const data = await res.json();
+        toast(data.message || "Failed to submit feedback. Please try again.", "error");
       }
-    } catch {
-      toast("Network error. Please try again.", "error");
+    } catch (err) {
+      console.error("Feedback submit error:", err);
+      toast("Could not reach the server. Make sure it is running on port 5000.", "error");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   if (submitted) return (

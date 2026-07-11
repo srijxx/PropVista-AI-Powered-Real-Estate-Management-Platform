@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import API_BASE from "../config";
 import AppLayout from "../components/AppLayout";
 import { useToast } from "../components/Toast";
@@ -23,7 +23,7 @@ function Contact() {
       const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (res.ok) {
@@ -34,10 +34,12 @@ function Contact() {
       } else {
         toast(data.message || "Failed to send message.", "error");
       }
-    } catch {
-      toast("Network error. Please try again.", "error");
+    } catch (err) {
+      console.error("Contact submit error:", err);
+      toast("Could not reach the server. Make sure it is running on port 5000.", "error");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   return (

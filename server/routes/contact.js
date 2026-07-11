@@ -1,8 +1,8 @@
 const express      = require("express");
 const router       = express.Router();
 const ContactModel = require("../models/Contact");
+const { sendContactNotification } = require("../utils/mailer");
 
-// Basic email regex
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ─── SUBMIT CONTACT MESSAGE ───────────────────────────────────────────────────
@@ -10,10 +10,11 @@ router.post("/", async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
 
-    if (!name  || !name.trim())   return res.status(400).json({ message: "Name is required" });
-    if (!email || !EMAIL_RE.test(email.trim())) return res.status(400).json({ message: "Valid email is required" });
-    if (!message || !message.trim()) return res.status(400).json({ message: "Message is required" });
+    if (!name    || !name.trim())            return res.status(400).json({ message: "Name is required" });
+    if (!email   || !EMAIL_RE.test(email.trim())) return res.status(400).json({ message: "Valid email is required" });
+    if (!message || !message.trim())         return res.status(400).json({ message: "Message is required" });
 
+    // Save to DB
     const contact = new ContactModel({
       name:    name.trim(),
       email:   email.trim().toLowerCase(),
@@ -21,6 +22,21 @@ router.post("/", async (req, res) => {
       message: message.trim(),
     });
     await contact.save();
+
+    // Send email to admin + acknowledgement to user (non-blocking)
+    setImmediate(async () => {
+      try {
+        await sendContactNotification({
+          name:    name.trim(),
+          email:   email.trim().toLowerCase(),
+          subject: subject?.trim() || "",
+          message: message.trim(),
+        });
+      } catch (err) {
+        console.error("[contact] Email error:", err.message);
+      }
+    });
+
     res.status(201).json({ message: "Message received! We'll respond within 24 hours." });
   } catch (err) {
     res.status(500).json({ message: err.message });

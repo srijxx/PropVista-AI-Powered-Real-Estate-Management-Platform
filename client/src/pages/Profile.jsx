@@ -11,6 +11,7 @@ const sideLinks = [
   { icon: "🗺️", label: "Map View",    to: "/explore" },
   { icon: "🔍", label: "AI Search",   to: "/ai-search" },
   { icon: "📅", label: "My Bookings", to: "/bookings" },
+  { icon: "➕", label: "Add Property", to: "/add-property" },
   { icon: "👤", label: "Profile",     to: "/profile" },
   { icon: "⚙️", label: "Settings",    to: "/settings" },
 ];
@@ -33,9 +34,6 @@ function Profile() {
   const [avatar,  setAvatar]  = useState(null);
   const [saving,  setSaving]  = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const userName = localStorage.getItem("userName") || "User";
-  const initial  = userName.charAt(0).toUpperCase();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -164,7 +162,6 @@ function Profile() {
           </div>
           <div className="ndb-header-right">
             <Notifications />
-            <div className="ndb-avatar">{initial}</div>
           </div>
         </div>
 
@@ -301,3 +298,4 @@ const lbl = {
 };
 
 export default Profile;
+

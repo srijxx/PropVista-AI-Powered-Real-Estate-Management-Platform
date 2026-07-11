@@ -19,6 +19,7 @@ const sideLinks = [
   { icon: "🗺️", label: "Map View",    to: "/explore" },
   { icon: "🔍", label: "AI Search",   to: "/ai-search" },
   { icon: "📅", label: "My Bookings", to: "/bookings" },
+  { icon: "➕", label: "Add Property", to: "/add-property" },
   { icon: "👤", label: "Profile",     to: "/profile" },
   { icon: "⚙️", label: "Settings",    to: "/settings" },
 ];
@@ -30,9 +31,6 @@ export default function MyBookings() {
   const [error, setError]         = useState(null);
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [cancelling, setCancelling] = useState(null);
-
-  const userName = localStorage.getItem("userName") || "User";
-  const initial  = userName.charAt(0).toUpperCase();
 
   // Read token once — avoids stale closure issues
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -121,7 +119,6 @@ export default function MyBookings() {
             </div>
             <div className="mb-header-right">
               <Notifications />
-              <div className="mb-avatar">{initial}</div>
             </div>
           </div>
 
@@ -318,3 +315,4 @@ export default function MyBookings() {
     </div>
   );
 }
+

@@ -1,7 +1,9 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 const Property = require("./models/Property");
 
-mongoose.connect("mongodb://127.0.0.1:27017/propvista");
+// Uses MONGO_URI from .env — never hardcode credentials
+mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/propvista");
 
 const cities = [
   { name: "Chennai", lat: 13.0827, lng: 80.2707 },

@@ -1,35 +1,80 @@
-# Dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+# PropVista — .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── DEPENDENCIES ──────────────────────────────────────────────────────────────
 node_modules/
 client/node_modules/
 server/node_modules/
 
-# Environment files — NEVER commit these
+# ── ENVIRONMENT FILES (SECRETS) ───────────────────────────────────────────────
+# NEVER commit these — they contain passwords, API keys, and connection strings
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+.env.staging
+
+# Server-level env files
+server/.env
+server/.env.local
+server/.env.production
+server/.env.staging
+
+# Client-level env files
 client/.env
 client/.env.local
 client/.env.production
-server/.env
+client/.env.development
+client/.env.development.local
+client/.env.test.local
+client/.env.production.local
 
-# Build output
+# ── BUILD OUTPUT ──────────────────────────────────────────────────────────────
 client/build/
 build/
+dist/
+.next/
 
-# Uploaded files (ephemeral on server)
+# ── UPLOADED FILES ────────────────────────────────────────────────────────────
 server/uploads/*
 !server/uploads/.gitkeep
 
-# Logs
+# ── LOGS ──────────────────────────────────────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
 
-# OS files
+# ── OS FILES ──────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
 Thumbs.db
+Desktop.ini
 
-# IDE
+# ── IDE / EDITOR ──────────────────────────────────────────────────────────────
 .vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ── MISC ──────────────────────────────────────────────────────────────────────
+*.pem
+*.key
+*.cert
+coverage/
+.nyc_output/
+
+# ── ONE-OFF SCRIPTS WITH DB ACCESS ────────────────────────────────────────────
+# These utility scripts should never be committed (may contain credentials)
+server/check_users.js
+server/migrate_passwords.js
+server/test_*.js
+server/fix*.js
+server/seed*.js
+server/checkLocalImages.js

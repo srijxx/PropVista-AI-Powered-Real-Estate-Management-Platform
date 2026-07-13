@@ -1,8 +1,9 @@
 const nodemailer = require("nodemailer");
 
 // ─── TRANSPORTER FACTORY ──────────────────────────────────────────────────────
-// Created lazily inside sendMail() so credentials are always read AFTER
+// Created fresh per sendMail() call so credentials are always read after
 // dotenv.config() has run — prevents the "undefined auth" silent failure.
+// Timeouts are tuned for Render Free Plan cold-start network conditions.
 function createTransporter() {
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -12,13 +13,40 @@ function createTransporter() {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    connectionTimeout: 30000,
-    greetingTimeout:   20000,
-    socketTimeout:     30000,
+    connectionTimeout: 60000,  // 60s — Render cold-start can be slow to establish TCP
+    greetingTimeout:   30000,  // 30s — wait for SMTP greeting after connection
+    socketTimeout:     60000,  // 60s — keep socket alive for the full SMTP conversation
+    pool: false,               // no connection pooling — fresh connection every time
   });
 }
 
-// ─── SEND HELPER ──────────────────────────────────────────────────────────────
+// ─── TRANSIENT FAILURE DETECTOR ───────────────────────────────────────────────
+// Returns true for errors that are worth retrying (network/timeout issues).
+// Returns false for permanent failures (bad credentials, invalid recipient).
+function isTransientError(err) {
+  const code = err.code || "";
+  const msg  = (err.message || "").toLowerCase();
+  return (
+    code === "ECONNRESET"   ||
+    code === "ECONNREFUSED" ||
+    code === "ETIMEDOUT"    ||
+    code === "ENOTFOUND"    ||
+    code === "ESOCKET"      ||
+    code === "ECONNECTION"  ||
+    msg.includes("timeout") ||
+    msg.includes("connection") ||
+    msg.includes("network") ||
+    msg.includes("econnreset") ||
+    msg.includes("socket")
+  );
+}
+
+// ─── SEND HELPER WITH RETRY ───────────────────────────────────────────────────
+// Retries up to MAX_RETRIES times for transient failures.
+// Permanent failures (auth, invalid address) fail immediately — no point retrying.
+const MAX_RETRIES  = 3;
+const RETRY_DELAY  = 2000; // ms
+
 async function sendMail({ to, subject, html, replyTo }) {
   if (
     !process.env.EMAIL_USER ||
@@ -28,24 +56,55 @@ async function sendMail({ to, subject, html, replyTo }) {
     console.log("[mailer] Email not configured — skipping:", subject, "→", to);
     return;
   }
-  try {
-    const transporter = createTransporter();
-    const mailOptions = {
-      from:    process.env.EMAIL_FROM || `PropVista <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    };
-    // Set Reply-To so the recipient's reply goes directly to the original sender
-    if (replyTo) mailOptions.replyTo = replyTo;
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[mailer] ✅ Sent "${subject}" → ${to} (msgId: ${info.messageId})`);
-  } catch (err) {
-    console.error(`[mailer] ❌ Failed to send "${subject}" → ${to}`);
-    console.error(`[mailer] Error: ${err.message}`);
-    console.error(`[mailer] Code: ${err.code || "none"}`);
+  const mailOptions = {
+    from:    process.env.EMAIL_FROM || `PropVista <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  };
+  if (replyTo) mailOptions.replyTo = replyTo;
+
+  let lastErr;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const transporter = createTransporter();
+
+    try {
+      // Verify SMTP connection before attempting send
+      console.log(`[mailer] Attempt ${attempt}/${MAX_RETRIES}: verifying SMTP for "${subject}" → ${to}`);
+      await transporter.verify();
+
+      // Send
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[mailer] ✅ Sent (attempt ${attempt}) "${subject}" → ${to} (msgId: ${info.messageId})`);
+      return; // success — exit
+    } catch (err) {
+      lastErr = err;
+
+      if (!isTransientError(err)) {
+        // Permanent failure — do not retry (wrong password, bad address, etc.)
+        console.error(`[mailer] ❌ Permanent failure — "${subject}" → ${to}`);
+        console.error(`[mailer]    Error : ${err.message}`);
+        console.error(`[mailer]    Code  : ${err.code || "none"}`);
+        return;
+      }
+
+      console.warn(`[mailer] ⚠ Transient failure (attempt ${attempt}/${MAX_RETRIES}) — "${subject}" → ${to}`);
+      console.warn(`[mailer]    Error : ${err.message} | Code: ${err.code || "none"}`);
+
+      if (attempt < MAX_RETRIES) {
+        console.log(`[mailer] Retrying in ${RETRY_DELAY / 1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      }
+    }
   }
+
+  // All retries exhausted
+  console.error(`[mailer] ❌ All ${MAX_RETRIES} attempts failed for "${subject}" → ${to}`);
+  console.error(`[mailer]    Last error : ${lastErr?.message}`);
+  console.error(`[mailer]    Last code  : ${lastErr?.code || "none"}`);
+  // Booking process continues — email failure is non-fatal
 }
 
 // ─── SHARED STYLES & COMPONENTS ───────────────────────────────────────────────

@@ -204,11 +204,6 @@ function PropertyDetails() {
     <AppLayout>
       <div className="pd-page">
 
-        {/* BACK */}
-        <button className="pd-back-btn" onClick={() => navigate(-1)}>
-          ← Back to Properties
-        </button>
-
         {/* TOP GRID */}
         <div className="pd-top-grid">
 

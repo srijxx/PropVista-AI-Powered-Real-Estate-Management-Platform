@@ -51,10 +51,15 @@ router.post("/", auth, async (req, res) => {
         const visitorPhone = phone || "Not provided";
         const visitorEmail = visitor.email;
 
-        // 1. Email → Property owner
-        if (property.ownerEmail && property.ownerEmail !== "owner@demo.com") {
+        // 1. Email → Property owner (fall back to admin if no real owner email)
+        const recipientEmail =
+          property.ownerEmail && property.ownerEmail !== "owner@demo.com"
+            ? property.ownerEmail
+            : process.env.EMAIL_USER; // fallback: admin receives it
+
+        if (recipientEmail) {
           await sendOwnerBookingNotification({
-            ownerEmail:       property.ownerEmail,
+            ownerEmail:       recipientEmail,
             ownerName:        property.ownerName,
             visitorName,
             visitorPhone,
@@ -138,10 +143,15 @@ router.patch("/:id/cancel", auth, async (req, res) => {
 
         const cancelledBy = booking.name || visitor.name || "Visitor";
 
-        // Notify owner
-        if (property.ownerEmail && property.ownerEmail !== "owner@demo.com") {
+        // Notify owner (fall back to admin if no real owner email)
+        const ownerRecipient =
+          property.ownerEmail && property.ownerEmail !== "owner@demo.com"
+            ? property.ownerEmail
+            : process.env.EMAIL_USER;
+
+        if (ownerRecipient) {
           await sendCancellationEmail({
-            toEmail:       property.ownerEmail,
+            toEmail:       ownerRecipient,
             toName:        property.ownerName,
             role:          "owner",
             propertyTitle: property.title,

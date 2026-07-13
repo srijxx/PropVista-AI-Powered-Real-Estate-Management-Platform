@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 
 // ── Toast Context & Hook ──────────────────────────────────────────────────────
 import { createContext, useContext } from "react";

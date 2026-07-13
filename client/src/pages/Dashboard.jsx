@@ -3,21 +3,27 @@ import { useNavigate, NavLink } from "react-router-dom";
 import CountUp from "react-countup";
 import API_BASE from "../config";
 import "./dashboard.css";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, AreaChart, Area, ComposedChart, Bar, CartesianGrid, Cell, LabelList, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
+import { ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import AIAssistant from "../components/AIAssistant";
 import Notifications from "../components/Notifications";
 
 // helpers
 import { getTypeImage } from "../utils/typeImages";
+
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
 }
-function getRecentlyViewed() {
-  try { return JSON.parse(localStorage.getItem("recentlyViewed")||"[]"); } catch { return []; }
-}
+
+// Defined outside component so the slideshow useEffect dep array is stable
+const SLIDES = [
+  { img: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=420&h=240&fit=crop", label: "Luxury Villa" },
+  { img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=420&h=240&fit=crop", label: "Modern House" },
+  { img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=420&h=240&fit=crop", label: "Premium Villa" },
+  { img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=420&h=240&fit=crop", label: "City Apartment" },
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -29,20 +35,12 @@ export default function Dashboard() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedCity, setSelectedCity] = useState("Coimbatore");
 
-  const SLIDES = [
-    { img: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=420&h=240&fit=crop", label: "Luxury Villa" },
-    { img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=420&h=240&fit=crop", label: "Modern House" },
-    { img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=420&h=240&fit=crop", label: "Premium Villa" },
-    { img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=420&h=240&fit=crop", label: "City Apartment" },
-  ];
-
   useEffect(() => {
     const t = setInterval(() => setSlideIdx(i => (i + 1) % SLIDES.length), 3500);
     return () => clearInterval(t);
-  }, []);
+  }, []); // SLIDES is defined outside — stable reference, no dep needed
 
   const userName = localStorage.getItem("userName") || "User";
-  const initial = userName.charAt(0).toUpperCase();
 
   useEffect(() => {
     fetch(`${API_BASE}/api/properties/stats/summary`)

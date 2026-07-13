@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import API_BASE from '../config';
 import { useNavigate } from "react-router-dom";
 import { getTypeImage } from "../utils/typeImages";

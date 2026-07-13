@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+﻿import { useParams } from "react-router-dom";
 import API_BASE from '../config';
 import { useEffect, useState, useCallback } from "react";
 import AppLayout from "../components/AppLayout";
@@ -58,7 +58,7 @@ function getHighlights(type) {
 
 function PropertyDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  
   const toast = useToast();
   const [property, setProperty] = useState(null);
   const [activeImg, setActiveImg] = useState(0);

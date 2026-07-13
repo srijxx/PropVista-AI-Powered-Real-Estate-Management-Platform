@@ -47,10 +47,6 @@ router.post("/", auth, async (req, res) => {
 
         if (!property || !visitor) return;
 
-        console.log("[booking:diag] property.ownerEmail =", JSON.stringify(property.ownerEmail));
-        console.log("[booking:diag] property.ownerName  =", JSON.stringify(property.ownerName));
-        console.log("[booking:diag] visitor.email       =", JSON.stringify(visitor.email));
-
         const visitorName  = name  || visitor.name  || "Visitor";
         const visitorPhone = phone || "Not provided";
         const visitorEmail = visitor.email;
@@ -59,9 +55,6 @@ router.post("/", auth, async (req, res) => {
           property.ownerEmail && property.ownerEmail !== "owner@demo.com"
             ? property.ownerEmail
             : process.env.EMAIL_USER;
-
-        console.log("[booking:diag] recipientEmail      =", JSON.stringify(recipientEmail));
-        console.log("[booking:diag] EMAIL_USER           =", JSON.stringify(process.env.EMAIL_USER));
 
         if (recipientEmail) {
           await sendOwnerBookingNotification({

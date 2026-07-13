@@ -1,23 +1,25 @@
 const nodemailer = require("nodemailer");
 
-// ─── TRANSPORTER ──────────────────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 30000,
-  greetingTimeout:   20000,
-  socketTimeout:     30000,
-  logger: true,  // enable nodemailer internal logs to console
-  debug: false,
-});
+// ─── TRANSPORTER FACTORY ──────────────────────────────────────────────────────
+// Created lazily inside sendMail() so credentials are always read AFTER
+// dotenv.config() has run — prevents the "undefined auth" silent failure.
+function createTransporter() {
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    connectionTimeout: 30000,
+    greetingTimeout:   20000,
+    socketTimeout:     30000,
+  });
+}
 
 // ─── SEND HELPER ──────────────────────────────────────────────────────────────
-async function sendMail({ to, subject, html }) {
+async function sendMail({ to, subject, html, replyTo }) {
   if (
     !process.env.EMAIL_USER ||
     !process.env.EMAIL_PASS ||
@@ -26,14 +28,18 @@ async function sendMail({ to, subject, html }) {
     console.log("[mailer] Email not configured — skipping:", subject, "→", to);
     return;
   }
-  console.log(`[mailer] Attempting to send "${subject}" → ${to}`);
   try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `PropVista <${process.env.EMAIL_USER}>`,
+    const transporter = createTransporter();
+    const mailOptions = {
+      from:    process.env.EMAIL_FROM || `PropVista <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
-    });
+    };
+    // Set Reply-To so the recipient's reply goes directly to the original sender
+    if (replyTo) mailOptions.replyTo = replyTo;
+
+    const info = await transporter.sendMail(mailOptions);
     console.log(`[mailer] ✅ Sent "${subject}" → ${to} (msgId: ${info.messageId})`);
   } catch (err) {
     console.error(`[mailer] ❌ Failed to send "${subject}" → ${to}`);
@@ -66,7 +72,7 @@ function emailWrapper(content) {
         © ${new Date().getFullYear()} <strong style="color:#64748b;">PropVista</strong> — India's Trusted Real Estate Platform
       </p>
       <p style="font-size:11px;color:#b0bec5;margin:0;">
-        This is an automated email. Please do not reply directly to this message.
+        This is an automated notification from PropVista.
       </p>
     </div>
   </div>
@@ -116,79 +122,81 @@ async function sendOwnerBookingNotification({
   message,
   bookingId,
 }) {
-  const fDate = new Date(visitDate).toLocaleDateString("en-IN", {
+  const fDate  = new Date(visitDate).toLocaleDateString("en-IN", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
   const fPrice = `₹ ${Number(propertyPrice || 0).toLocaleString("en-IN")}`;
   const now    = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
 
   const body = emailWrapper(`
-  <!-- CARD -->
   <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(15,40,87,0.10);">
 
     ${headerBanner(
       "linear-gradient(135deg,#0f2857 0%,#1a4fa0 100%)",
-      "🏡",
-      "New Property Visit Scheduled",
-      "A prospective buyer has booked a site visit for your listing."
+      "🏠",
+      "New Property Booking",
+      "Someone has booked a visit to your property on PropVista."
     )}
 
-    <!-- BODY -->
     <div style="padding:28px 32px;">
 
-      <p style="font-size:15px;color:#334155;margin:0 0 20px;line-height:1.7;">
+      <p style="font-size:15px;color:#334155;margin:0 0 24px;line-height:1.7;">
         Dear <strong style="color:#0f2857;">${ownerName || "Property Owner"}</strong>,<br/>
-        We are pleased to inform you that a visitor has scheduled a site visit for your property listed on <strong>PropVista</strong>. Please find the details below.
+        A visitor has scheduled a site visit for your listing on <strong>PropVista</strong>.
+        Their details are below — you can reply to this email to reach them directly.
       </p>
 
-      <!-- PROPERTY INFO -->
+      <!-- BOOKED BY -->
       <div style="background:#f0f7ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
-        <p style="font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 10px;">📌 Property Listed</p>
-        <p style="font-size:17px;font-weight:700;color:#0f172a;margin:0 0 6px;">${propertyTitle}</p>
-        <p style="font-size:13px;color:#475569;margin:0 0 4px;">📍 ${propertyLocation}</p>
-        <p style="font-size:13px;color:#475569;margin:0;">
-          ${pillBadge(propertyType, "#1d4ed8", "#dbeafe")}
-          &nbsp;
-          ${pillBadge(fPrice, "#065f46", "#d1fae5")}
-        </p>
-      </div>
-
-      <!-- VISIT SCHEDULE -->
-      <div style="display:table;width:100%;margin-bottom:18px;">
-        <div style="display:table-cell;width:50%;padding-right:8px;">
-          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px;text-align:center;">
-            <p style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 8px;">📅 Visit Date</p>
-            <p style="font-size:14px;font-weight:700;color:#14532d;margin:0;">${fDate}</p>
-          </div>
-        </div>
-        <div style="display:table-cell;width:50%;padding-left:8px;">
-          <div style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:16px;text-align:center;">
-            <p style="font-size:11px;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 8px;">🕐 Preferred Time</p>
-            <p style="font-size:14px;font-weight:700;color:#7c2d12;margin:0;">${visitTime}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- VISITOR DETAILS -->
-      <div style="background:#fafafa;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
-        <p style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;">👤 Visitor Information</p>
+        <p style="font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 14px;">👤 Booked By</p>
         <table style="width:100%;border-collapse:collapse;">
-          ${labelValue("Full Name",   visitorName  || "—")}
-          ${labelValue("Phone",       `<a href="tel:${visitorPhone}" style="color:#2563eb;text-decoration:none;">${visitorPhone || "Not provided"}</a>`)}
-          ${labelValue("Email",       `<a href="mailto:${visitorEmail}" style="color:#2563eb;text-decoration:none;">${visitorEmail || "—"}</a>`)}
-          ${message ? labelValue("Message", `<em style="color:#64748b;">"${message}"</em>`) : ""}
+          ${labelValue("Name",  `<strong style="color:#0f172a;font-size:15px;">${visitorName || "—"}</strong>`)}
+          ${labelValue("Email", `<a href="mailto:${visitorEmail}" style="color:#2563eb;text-decoration:none;font-weight:600;">${visitorEmail || "—"}</a>`)}
+          ${labelValue("Phone", `<a href="tel:${visitorPhone}" style="color:#2563eb;text-decoration:none;font-weight:600;">${visitorPhone || "Not provided"}</a>`)}
         </table>
       </div>
 
+      <!-- PROPERTY -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #64748b;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
+        <p style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 14px;">📌 Property</p>
+        <table style="width:100%;border-collapse:collapse;">
+          ${labelValue("Title",    `<strong style="color:#0f172a;">${propertyTitle}</strong>`)}
+          ${labelValue("Location", propertyLocation)}
+        </table>
+      </div>
+
+      <!-- VISIT DETAILS -->
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
+        <p style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 14px;">📅 Visit Details</p>
+        <table style="width:100%;border-collapse:collapse;">
+          ${labelValue("Date", `<strong style="color:#14532d;">${fDate}</strong>`)}
+          ${labelValue("Time", `<strong style="color:#14532d;">${visitTime}</strong>`)}
+        </table>
+      </div>
+
+      ${message ? `
+      <!-- MESSAGE -->
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:10px;padding:18px 20px;margin-bottom:18px;">
+        <p style="font-size:11px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 10px;">💬 Message</p>
+        <p style="font-size:14px;color:#78350f;line-height:1.7;margin:0;white-space:pre-wrap;font-style:italic;">"${message}"</p>
+      </div>` : ""}
+
       ${divider()}
 
+      <!-- REPLY PROMPT -->
+      <div style="background:#f0f7ff;border-radius:10px;padding:14px 18px;margin-bottom:20px;text-align:center;">
+        <p style="font-size:13px;color:#1e40af;font-weight:600;margin:0;">
+          💡 Hit <strong>Reply</strong> to this email to respond directly to
+          <a href="mailto:${visitorEmail}" style="color:#2563eb;">${visitorName || visitorEmail}</a>
+        </p>
+      </div>
+
       <!-- ACTION BUTTONS -->
-      <p style="font-size:13px;color:#64748b;margin:0 0 14px;">You may reach out to the visitor directly to confirm the visit:</p>
       <div style="text-align:center;margin-bottom:20px;">
         ${actionButton(`tel:${visitorPhone}`, "📞 Call Visitor", "#16a34a")}
         &nbsp;&nbsp;
         ${actionButton(
-          `mailto:${visitorEmail}?subject=Re%3A%20Property%20Visit%20-%20${encodeURIComponent(propertyTitle)}&body=Dear%20${encodeURIComponent(visitorName || "")}%2C%0A%0AThank%20you%20for%20your%20interest%20in%20my%20property.%20I%20look%20forward%20to%20meeting%20you.%0A%0ARegards`,
+          `mailto:${visitorEmail}?subject=Re%3A%20Property%20Visit%20-%20${encodeURIComponent(propertyTitle)}`,
           "✉️ Reply by Email",
           "#2563eb"
         )}
@@ -203,10 +211,12 @@ async function sendOwnerBookingNotification({
     </div>
   </div>`);
 
+  // Reply-To set to visitor's email so owner can reply directly to them
   await sendMail({
-    to: ownerEmail,
-    subject: `🏡 New Visit Scheduled — ${propertyTitle} | PropVista`,
-    html: body,
+    to:      ownerEmail,
+    subject: `🏠 New Property Booking — ${propertyTitle} | PropVista`,
+    html:    body,
+    replyTo: `${visitorName || "Visitor"} <${visitorEmail}>`,
   });
 }
 

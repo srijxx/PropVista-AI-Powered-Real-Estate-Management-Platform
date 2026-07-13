@@ -1,4 +1,4 @@
-﻿import { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import API_BASE from '../config';
 import { useEffect, useState, useCallback } from "react";
 import AppLayout from "../components/AppLayout";

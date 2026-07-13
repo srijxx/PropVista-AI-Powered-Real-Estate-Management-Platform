@@ -9,9 +9,11 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 15000,
-  greetingTimeout:   10000,
-  socketTimeout:     15000,
+  connectionTimeout: 30000,
+  greetingTimeout:   20000,
+  socketTimeout:     30000,
+  logger: true,  // enable nodemailer internal logs to console
+  debug: false,
 });
 
 // ─── SEND HELPER ──────────────────────────────────────────────────────────────
@@ -24,16 +26,19 @@ async function sendMail({ to, subject, html }) {
     console.log("[mailer] Email not configured — skipping:", subject, "→", to);
     return;
   }
+  console.log(`[mailer] Attempting to send "${subject}" → ${to}`);
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || `PropVista <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
     });
-    console.log(`[mailer] ✅ Sent "${subject}" → ${to}`);
+    console.log(`[mailer] ✅ Sent "${subject}" → ${to} (msgId: ${info.messageId})`);
   } catch (err) {
-    console.error("[mailer] ❌ Failed:", err.message);
+    console.error(`[mailer] ❌ Failed to send "${subject}" → ${to}`);
+    console.error(`[mailer] Error: ${err.message}`);
+    console.error(`[mailer] Code: ${err.code || "none"}`);
   }
 }
 

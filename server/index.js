@@ -1,10 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-// Load .env in development; on Render env vars are injected automatically
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
+require("dotenv").config(); // loads .env locally; on Render uses system env vars
+
+// ─── STARTUP ENV CHECK ────────────────────────────────────────────────────────
+console.log("[startup] PORT      :", process.env.PORT      || "NOT SET");
+console.log("[startup] MONGO_URI :", process.env.MONGO_URI ? "SET ✅" : "NOT SET ❌");
+console.log("[startup] JWT_SECRET:", process.env.JWT_SECRET ? "SET ✅" : "NOT SET ❌");
+console.log("[startup] CLIENT_URL:", process.env.CLIENT_URL || "NOT SET");
 
 const connectDB = require("./config/db");
 

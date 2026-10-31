@@ -68,4 +68,10 @@ app.use((err, req, res, next) => {
 
 // ─── START ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, "0.0.0.0", () => console.log(`Server started on port ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server started on port ${PORT}`);
+  // Keep Render free tier awake — ping every 14 minutes
+  if (process.env.NODE_ENV !== "development") {
+    require("./keepalive")();
+  }
+});

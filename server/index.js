@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-require("dotenv").config();
+// Load .env in development; on Render env vars are injected automatically
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
 
 const connectDB = require("./config/db");
 
